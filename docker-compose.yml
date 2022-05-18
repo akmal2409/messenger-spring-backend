@@ -1,0 +1,140 @@
+####################################################################################################
+# Below is the docker compose file consisting of 6 services within two internal networks
+# 1) zookeeper is the one that manages the Kafka brokers - Accessible only WITHIN kafka-cluster net.
+# 2) broker01 and broker 02 are two kafka brokers that are accessible both from the host network
+# at ports 9092 and 9093 respectively and broker01:29092 and broker01:29093 within kafka-cluster net.
+# 3) schema-registry is the service that manages kafka message schemas and versioning. Exposed port
+# 8081 accessible on host network.
+# 3) cassandra01 and cassandra02 are two cassandra nodes that reside within cassandra-cluster network
+# both are also exposed to the host network through the ports 9042 and 9043 for CQLsh connections.
+####################################################################################################
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka-cluster
+    user: "0:0"
+
+  broker01:
+    image: confluentinc/cp-kafka:latest
+    container_name: "broker01"
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka-cluster
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,PLAINTEXT_INTERNAL://broker01:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./data/broker01/data:/var/lib/kafka/data
+    user: "0:0"
+
+  broker02:
+    image: confluentinc/cp-kafka:latest
+    container_name: "broker02"
+    ports:
+      - "9093:9093"
+    networks:
+      - kafka-cluster
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9093,PLAINTEXT_INTERNAL://broker02:29093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./data/broker02/data:/var/lib/kafka/data
+    user: "0:0"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    container_name: 'schema-registry'
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker01:29092,PLAINTEXT://broker02:29093'
+      SCHEMA_REGISTRY_HOST_NAME: 'schema-registry'
+      SCHEMA_REGISTRY_LISTENERS: 'http://127.0.0.1:8081'
+    depends_on:
+      - broker01
+      - broker02
+    ports:
+      - '8081:8081'
+    networks:
+      - kafka-cluster
+
+#  Cassandra
+  cassandra01:
+    image: cassandra:3.11.13
+    container_name: cassandra01
+    hostname: cassandra01
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "describe keyspaces" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    networks:
+      - cassandra-cluster
+    ports:
+      - '9042:9042'
+    volumes:
+      - ./data/cassandra01/data:/var/lib/cassandra
+      - ./data/cassandra01/etc:/etc/cassandra
+    environment:
+      CASSANDRA_SEEDS: "cassandra01, cassandra02"
+      CASSANDRA_CLUSTER_NAME: MilkyWay
+      CASSANDRA_DC: Moon
+      CASSANDRA_RACK: West
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 128
+
+  cassandra02:
+    image: cassandra:3.11.13
+    container_name: cassandra02
+    hostname: cassandra02
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "describe keyspaces" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    networks:
+      - cassandra-cluster
+    ports:
+      - '9043:9042'
+    volumes:
+      - ./data/cassandra02/data:/var/lib/cassandra
+      - ./data/cassandra02/etc:/etc/cassandra
+    environment:
+      CASSANDRA_SEEDS: "cassandra01, cassandra02"
+      CASSANDRA_CLUSTER_NAME: MilkyWay
+      CASSANDRA_DC: Moon
+      CASSANDRA_RACK: West
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 128
+    depends_on:
+      cassandra01:
+        condition: service_healthy
+
+
+networks:
+  cassandra-cluster:
+    driver: bridge
+  kafka-cluster:
+    driver: bridge
