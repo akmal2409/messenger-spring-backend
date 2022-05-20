@@ -96,7 +96,7 @@ services:
       - '9042:9042'
     volumes:
       - ./data/cassandra01/data:/var/lib/cassandra
-      - ./data/cassandra01/etc:/etc/cassandra
+#      - ./data/cassandra01/etc:/etc/cassandra
     environment:
       CASSANDRA_SEEDS: "cassandra01, cassandra02"
       CASSANDRA_CLUSTER_NAME: MilkyWay
@@ -120,7 +120,7 @@ services:
       - '9043:9042'
     volumes:
       - ./data/cassandra02/data:/var/lib/cassandra
-      - ./data/cassandra02/etc:/etc/cassandra
+#      - ./data/cassandra02/etc:/etc/cassandra
     environment:
       CASSANDRA_SEEDS: "cassandra01, cassandra02"
       CASSANDRA_CLUSTER_NAME: MilkyWay
