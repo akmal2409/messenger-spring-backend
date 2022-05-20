@@ -82,7 +82,7 @@ services:
 
 #  Cassandra
   cassandra01:
-    image: cassandra:3.11.13
+    image: cassandra:4.0.4
     container_name: cassandra01
     hostname: cassandra01
     healthcheck:
@@ -106,7 +106,7 @@ services:
       CASSANDRA_NUM_TOKENS: 128
 
   cassandra02:
-    image: cassandra:3.11.13
+    image: cassandra:4.0.4
     container_name: cassandra02
     hostname: cassandra02
     healthcheck:
