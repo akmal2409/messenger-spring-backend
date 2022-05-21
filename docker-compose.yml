@@ -7,6 +7,10 @@
 # 8081 accessible on host network.
 # 3) cassandra01 and cassandra02 are two cassandra nodes that reside within cassandra-cluster network
 # both are also exposed to the host network through the ports 9042 and 9043 for CQLsh connections.
+# Cassandra d=configuration tweaks:
+# In order to simulate multi host environment and run containers as if they were hosted on different
+# machines, we can use aliases for CASSANDRA_BROADCAST_RPC_ADDRESS like 127.0.0.1, 127.0.0.2 etc.
+# This is done due to connectivity issues and warning thrown by the datastax driver 4.11
 ####################################################################################################
 services:
   zookeeper:
@@ -91,19 +95,25 @@ services:
       timeout: 5s
       retries: 60
     networks:
-      - cassandra-cluster
+      cassandra-cluster:
+        ipv4_address: 172.30.0.2
     ports:
       - '9042:9042'
+      - '7000:7000'
     volumes:
       - ./data/cassandra01/data:/var/lib/cassandra
 #      - ./data/cassandra01/etc:/etc/cassandra
     environment:
-      CASSANDRA_SEEDS: "cassandra01, cassandra02"
+      CASSANDRA_SEEDS: "cassandra01"
       CASSANDRA_CLUSTER_NAME: MilkyWay
-      CASSANDRA_DC: Moon
-      CASSANDRA_RACK: West
+      CASSANDRA_DC: "Moon"
+      CASSANDRA_RACK: "West"
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
       CASSANDRA_NUM_TOKENS: 128
+      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.1
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+      MAX_HEAP_SIZE: 2G
+      HEAP_NEWSIZE: 200M
 
   cassandra02:
     image: cassandra:4.0.4
@@ -115,26 +125,34 @@ services:
       timeout: 5s
       retries: 60
     networks:
-      - cassandra-cluster
+      cassandra-cluster:
+        ipv4_address: 172.30.0.3
     ports:
       - '9043:9042'
+      - '7001:7000'
     volumes:
       - ./data/cassandra02/data:/var/lib/cassandra
 #      - ./data/cassandra02/etc:/etc/cassandra
     environment:
-      CASSANDRA_SEEDS: "cassandra01, cassandra02"
+      CASSANDRA_SEEDS: "cassandra01"
       CASSANDRA_CLUSTER_NAME: MilkyWay
-      CASSANDRA_DC: Moon
-      CASSANDRA_RACK: West
+      CASSANDRA_DC: "Moon"
+      CASSANDRA_RACK: "West"
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
       CASSANDRA_NUM_TOKENS: 128
+      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.1
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+      MAX_HEAP_SIZE: 2G
+      HEAP_NEWSIZE: 200M
     depends_on:
-      cassandra01:
-        condition: service_healthy
+       - cassandra01
 
 
 networks:
   cassandra-cluster:
-    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
   kafka-cluster:
     driver: bridge
