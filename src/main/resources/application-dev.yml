@@ -15,10 +15,10 @@ project:
     seeds:
       - '127.0.0.1:9042'
     schema:
-      init: false
-      scripts: 'classpath:cassandra-scripts/schema.cql'
+      init: true
+      scripts: 'cassandra-scripts/schema.cql'
     data:
       init: false
-      scripts: 'classpath:cassandra-scripts/data.cql'
+      scripts: 'cassandra-scripts/data.cql'
 
 
