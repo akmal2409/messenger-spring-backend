@@ -1,0 +1,35 @@
+{
+  "properties": [
+    {
+      "name": "project.cassandra.keyspace.name",
+      "type": "java.lang.String",
+      "description": "Name of the Cassandra keyspace."
+    },
+    {
+      "name": "project.cassandra.keyspace.replication-factor",
+      "type": "java.lang.String",
+      "defaultValue": "3",
+      "description": "Replication factor for a partition in Cassandra."
+    },
+    {
+      "name": "project.cassandra.keyspace.durable-writes",
+      "type": "java.lang.String",
+      "defaultValue": "true",
+      "description": "Durable writes true/false. Whether Cassandra should write to commit log for each write in order not to loose data if the memtable was lost due to outage."
+    },
+    {
+      "name": "project.cassandra.dc",
+      "type": "java.lang.String",
+      "description": "Datacenter name."
+    },
+    {
+      "name": "project.cassandra.rack",
+      "type": "java.lang.String",
+      "description": "Rack name in the DC."
+    },
+    {
+      "name": "project.cassandra.seeds",
+      "type": "java.lang.String",
+      "description": "Initial cassandra seed nodes through which we can discover cluster's topology."
+    }
+  ] }

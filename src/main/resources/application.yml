@@ -1,0 +1,23 @@
+#For deployment
+spring:
+  profiles:
+    active: dev
+
+
+
+#project:
+#  cassandra:
+#    keyspace:
+#      name: 'Messenger'
+#      replication-factor: 2
+#      durable-writes: true
+#    dc: "Moon"
+#    rack: "West"
+#    seeds:
+#      - '127.0.0.1:9042'
+#    schema:
+#      init: false
+#      scripts: 'classpath:cassandra-scripts/schema.cql'
+#    data:
+#      init: false
+#      scripts: 'classpath:cassandra-scripts/data.cql'
