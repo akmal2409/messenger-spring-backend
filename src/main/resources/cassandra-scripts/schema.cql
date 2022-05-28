@@ -1,4 +1,8 @@
+-- CREATE KEYSPACE messenger WITH replication = {'class': 'SimpleStrategy',
+--     'replication_factor': 2} AND DURABLE_WRITES = true;
 USE messenger;
+
+CREATE TYPE IF NOT EXISTS user ( uid UUID, first_name TEXT, last_name TEXT, profile_image_url TEXT, profile_thumbnail_url TEXT );
 
 CREATE TABLE IF NOT EXISTS users
 (
@@ -6,24 +10,50 @@ CREATE TABLE IF NOT EXISTS users
     email TEXT,
     first_name TEXT,
     last_name TEXT,
-    conversation_ids SET<TEXT>,
+    profile_image_url TEXT,
+    profile_thumbnail_url TEXT,
+    contact_ids SET<uuid>,
+    thread_ids SET<timeuuid>,
     PRIMARY KEY (uid)
 );
 
-CREATE TABLE IF NOT EXISTS messages_by_conversation
+CREATE TABLE IF NOT EXISTS messages_by_user_by_thread
 (
-  conversation_id TIMEUUID,
+  uid UUID,
+  thread_id TIMEUUID,
   bucket int,
   message_id BIGINT,
   author_id UUID,
   body TEXT,
-  PRIMARY KEY ((conversation_id, bucket), message_id)
+  is_read BOOLEAN,
+  is_edited BOOLEAN,
+  is_system_message boolean,
+  PRIMARY KEY ((uid, thread_id, bucket), message_id)
+) WITH CLUSTERING ORDER BY (message_id DESC);
+
+
+CREATE TABLE IF NOT EXISTS threads
+(
+  thread_id TIMEUUID,
+  member_ids SET<uuid>,
+  thread_name TEXT,
+  thread_picture_thumbnail_url TEXT,
+  thread_picture_url TEXT,
+  is_group_thread boolean,
+  PRIMARY KEY (thread_id)
 );
 
-
-CREATE TYPE IF NOT EXISTS user ( uid UUID, first_name TEXT, last_name TEXT );
-
-CREATE TABLE IF NOT EXISTS conversations (
-    conversation_id TIMEUUID PRIMARY KEY,
-    participants SET<FROZEN<user>>
+CREATE TABLE IF NOT EXISTS threads_by_user_by_last_message
+(
+    uid UUID,
+    thread_id TIMEUUID,
+    message_id BIGINT,
+    time timestamp,
+    thread_name TEXT,
+    thread_picture_thumbnail_url TEXT,
+    message TEXT,
+    author frozen<user>,
+    is_read BOOLEAN,
+    is_system_message boolean,
+    PRIMARY KEY ((uid), thread_id)
 );
