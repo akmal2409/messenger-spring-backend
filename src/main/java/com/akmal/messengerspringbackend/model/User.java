@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 import org.springframework.data.cassandra.core.mapping.Column;
@@ -18,6 +19,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
  * @since 1.0z
  */
 @With
+@Builder
 @Data
 @Table("users")
 public class User {

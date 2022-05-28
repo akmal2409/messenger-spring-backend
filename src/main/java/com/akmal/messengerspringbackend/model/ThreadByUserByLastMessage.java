@@ -4,6 +4,7 @@ import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import com.datastax.oss.protocol.internal.ProtocolConstants.DataType;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -24,6 +25,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
  * @since 1.0
  */
 @With
+@Builder
 @Data
 @Table("threads_by_user_by_last_message")
 public class ThreadByUserByLastMessage {

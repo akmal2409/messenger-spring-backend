@@ -3,6 +3,7 @@ package com.akmal.messengerspringbackend.model;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 import org.springframework.data.cassandra.core.mapping.Column;
@@ -18,6 +19,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
  */
 @Table("threads")
 @With
+@Builder
 @Data
 public class Thread {
   @PrimaryKey("thread_id")

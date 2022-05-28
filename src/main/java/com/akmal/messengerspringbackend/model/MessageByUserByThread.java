@@ -2,6 +2,7 @@ package com.akmal.messengerspringbackend.model;
 
 import java.io.Serializable;
 import java.util.UUID;
+import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 import org.springframework.data.cassandra.core.cql.Ordering;
@@ -21,6 +22,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
  */
 @Table("messages_by_user_by_thread")
 @With
+@Builder
 @Data
 public class MessageByUserByThread {
 
