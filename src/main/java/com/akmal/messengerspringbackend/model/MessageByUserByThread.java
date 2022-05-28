@@ -27,7 +27,7 @@ public class MessageByUserByThread {
   @With
   @Data
   @PrimaryKeyClass
-  static class Key implements Serializable {
+  public static class Key implements Serializable {
     @PrimaryKeyColumn(value = "uid", type = PrimaryKeyType.PARTITIONED)
     private final UUID uid;
     @PrimaryKeyColumn(value = "thread_id", type = PrimaryKeyType.PARTITIONED)
@@ -48,4 +48,6 @@ public class MessageByUserByThread {
   private final boolean isRead;
   @Column("is_edited")
   private final boolean isEdited;
+  @Column("is_system_message")
+  private final boolean systemMessage;
 }
