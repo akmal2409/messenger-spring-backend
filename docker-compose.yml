@@ -36,7 +36,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,PLAINTEXT_INTERNAL://broker01:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -59,7 +59,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9093,PLAINTEXT_INTERNAL://broker02:29093
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -69,20 +69,20 @@ services:
       - ./data/broker02/data:/var/lib/kafka/data
     user: "0:0"
 
-  schema-registry:
-    image: confluentinc/cp-schema-registry:latest
-    container_name: 'schema-registry'
-    environment:
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker01:29092,PLAINTEXT://broker02:29093'
-      SCHEMA_REGISTRY_HOST_NAME: 'schema-registry'
-      SCHEMA_REGISTRY_LISTENERS: 'http://127.0.0.1:8081'
-    depends_on:
-      - broker01
-      - broker02
-    ports:
-      - '8081:8081'
-    networks:
-      - kafka-cluster
+#  schema-registry:
+#    image: confluentinc/cp-schema-registry:latest
+#    container_name: 'schema-registry'
+#    environment:
+#      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker01:29092,PLAINTEXT://broker02:29093'
+#      SCHEMA_REGISTRY_HOST_NAME: 'schema-registry'
+#      SCHEMA_REGISTRY_LISTENERS: 'http://127.0.0.1:8081'
+#    depends_on:
+#      - broker01
+#      - broker02
+#    ports:
+#      - '8081:8081'
+#    networks:
+#      - kafka-cluster
 
 #  Cassandra
   cassandra01:
@@ -140,7 +140,7 @@ services:
       CASSANDRA_RACK: "West"
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
       CASSANDRA_NUM_TOKENS: 128
-      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.1
+      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.2
       CASSANDRA_RPC_ADDRESS: 0.0.0.0
       MAX_HEAP_SIZE: 2G
       HEAP_NEWSIZE: 200M
