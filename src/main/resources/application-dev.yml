@@ -18,7 +18,7 @@ project:
       init: true
       scripts: 'cassandra-scripts/schema.cql'
     data:
-      init: false
+      init: true
       scripts: 'cassandra-scripts/data.cql'
 
 
