@@ -13,3 +13,5 @@ target/
 
 # docker data
 data/
+
+docker-compose-old1.yml

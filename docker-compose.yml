@@ -86,7 +86,7 @@ services:
 
 #  Cassandra
   cassandra01:
-    image: cassandra:4.0.4
+    image: datastax/dse-server:6.8.23
     container_name: cassandra01
     hostname: cassandra01
     healthcheck:
@@ -94,29 +94,35 @@ services:
       interval: 5s
       timeout: 5s
       retries: 60
+    volumes:
+      - ./data/cassandra01/data:/data
+    ports:
+      - "9042:9042" # Exposes DSE port
+      - '7000:7000'
+    environment:
+      DS_LICENSE: accept # Accept licence on start
+      CLUSTER_NAME: 'MilkyWay'
+      SEEDS: 'cassandra01'
+      NUM_TOKENS: 128
+      NATIVE_TRANSPORT_BROADCAST_ADDRESS: '127.0.0.1'
+      SNITCH: 'GossipingPropertyFileSnitch'
+      DC: 'Moon'
+      RACK: 'West'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
+      OPSCENTER_IP: '127.0.0.1:61620'
+      JMX_PORT: 7299
     networks:
       cassandra-cluster:
         ipv4_address: 172.30.0.2
-    ports:
-      - '9042:9042'
-      - '7000:7000'
-    volumes:
-      - ./data/cassandra01/data:/var/lib/cassandra
-#      - ./data/cassandra01/etc:/etc/cassandra
-    environment:
-      CASSANDRA_SEEDS: "cassandra01"
-      CASSANDRA_CLUSTER_NAME: MilkyWay
-      CASSANDRA_DC: "Moon"
-      CASSANDRA_RACK: "West"
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-      CASSANDRA_NUM_TOKENS: 128
-      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.1
-      CASSANDRA_RPC_ADDRESS: 0.0.0.0
-      MAX_HEAP_SIZE: 2G
-      HEAP_NEWSIZE: 200M
+    cap_add:
+      - IPC_LOCK # Allow DSE to lock memory with mlock
+    ulimits:
+      memlock: -1
+    depends_on:
+      - opscenter
 
   cassandra02:
-    image: cassandra:4.0.4
+    image: datastax/dse-server:6.8.23
     container_name: cassandra02
     hostname: cassandra02
     healthcheck:
@@ -124,29 +130,32 @@ services:
       interval: 5s
       timeout: 5s
       retries: 60
+    volumes:
+      - ./data/cassandra02/data:/data
+    ports:
+      - "9043:9042" # Exposes DSE port
+      - '7001:7000'
+    environment:
+      DS_LICENSE: accept # Accept licence on start
+      CLUSTER_NAME: 'MilkyWay'
+      NATIVE_TRANSPORT_BROADCAST_ADDRESS: '127.0.0.2'
+      SEEDS: 'cassandra01'
+      NUM_TOKENS: 128
+      SNITCH: 'GossipingPropertyFileSnitch'
+      DC: 'Moon'
+      RACK: 'West'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
+      OPSCENTER_IP: '127.0.0.1:61620'
+      JMX_PORT: 7399
+    cap_add:
+      - IPC_LOCK # Allow DSE to lock memory with mlock
+    ulimits:
+      memlock: -1
     networks:
       cassandra-cluster:
         ipv4_address: 172.30.0.3
-    ports:
-      - '9043:9042'
-      - '7001:7000'
-    volumes:
-      - ./data/cassandra02/data:/var/lib/cassandra
-#      - ./data/cassandra02/etc:/etc/cassandra
-    environment:
-      CASSANDRA_SEEDS: "cassandra01"
-      CASSANDRA_CLUSTER_NAME: MilkyWay
-      CASSANDRA_DC: "Moon"
-      CASSANDRA_RACK: "West"
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-      CASSANDRA_NUM_TOKENS: 128
-      CASSANDRA_BROADCAST_RPC_ADDRESS: 127.0.0.2
-      CASSANDRA_RPC_ADDRESS: 0.0.0.0
-      MAX_HEAP_SIZE: 2G
-      HEAP_NEWSIZE: 200M
     depends_on:
        - cassandra01
-
 
 networks:
   cassandra-cluster:
