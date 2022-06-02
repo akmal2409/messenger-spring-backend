@@ -20,6 +20,7 @@ class SimpleSnowflakeGeneratorTest {
 
   private static final Instant CUSTOM_EPOCH = Instant.parse("2000-06-01T00:00:00Z");
   private static final int CUSTOM_NODE_ID = 678;
+  public static final int DELTA_MS = 1000;
 
   SimpleSnowflakeGenerator snowflakeGenerator;
 
@@ -105,14 +106,43 @@ class SimpleSnowflakeGeneratorTest {
   }
 
   @Test
-  void extractTimestamp() {
+  @DisplayName("Assert that 1 bit is reserved and is always 0 (MSB), 41 bits are for the timestamp, "
+                   + "10 bits for node id and 12 bits for sequence numbers")
+  void assertConsistencyOfSnowflakeStructure() {
+    final var generator = SimpleSnowflakeGenerator.defaultInstance();
+
+    final var snowflake = generator.nextId();
+
+    final var extraBit = snowflake >> 63;
+    final var timestamp = snowflake >> 22;
+    final var nodeId =  (((1 << 22) - 1) & snowflake) >> 12;
+
+    assertThat(extraBit).isEqualTo(0);
+    assertThat(timestamp).isBetween(Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
+        Instant.now().plusMillis(DELTA_MS).toEpochMilli());
+    assertThat(nodeId).isEqualTo(generator.nodeId());
   }
 
   @Test
-  void toInstant() {
+  @DisplayName("Should extract timestamp using bitwise operations from a snowflake")
+  void shouldExtractTimestampFromSnowflake() {
+    final var generator = SimpleSnowflakeGenerator.defaultInstance();
+
+    final var timestamp = generator.extractTimestamp(generator.nextId());
+
+    assertThat(timestamp).isBetween(Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
+        Instant.now().plusMillis(DELTA_MS).toEpochMilli());
   }
 
   @Test
-  void epochMilli() {
+  @DisplayName("Should construct correct instant from a snowflake")
+  void shouldGiveCorrectInstant() {
+    final var generator = SimpleSnowflakeGenerator.defaultInstance();
+
+    final var timestampInstant = generator.toInstant(generator.nextId());
+
+    assertThat(timestampInstant).isNotNull();
+    assertThat(timestampInstant).isBetween(Instant.now().minusMillis(DELTA_MS),
+        Instant.now().plusMillis(DELTA_MS));
   }
 }
