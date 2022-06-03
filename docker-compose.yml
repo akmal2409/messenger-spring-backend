@@ -16,11 +16,20 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
+    healthcheck:
+      test: [ "CMD-SHELL", "echo ruok | nc -w 2 zookeeper 2181" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
     networks:
       - kafka-cluster
+    volumes:
+      - "./data/zookeeper01/data:/var/lib/zookeeper/data"
+      - "./data/zookeeper01/logs:/var/lib/zookeeper/log"
     user: "0:0"
 
   broker01:
@@ -41,7 +50,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     volumes:
       - ./data/broker01/data:/var/lib/kafka/data
     user: "0:0"
@@ -64,7 +74,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     volumes:
       - ./data/broker02/data:/var/lib/kafka/data
     user: "0:0"
@@ -109,8 +120,6 @@ services:
       DC: 'Moon'
       RACK: 'West'
       JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
-      OPSCENTER_IP: '127.0.0.1:61620'
-      JMX_PORT: 7299
     networks:
       cassandra-cluster:
         ipv4_address: 172.30.0.2
@@ -145,8 +154,6 @@ services:
       DC: 'Moon'
       RACK: 'West'
       JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
-      OPSCENTER_IP: '127.0.0.1:61620'
-      JMX_PORT: 7399
     cap_add:
       - IPC_LOCK # Allow DSE to lock memory with mlock
     ulimits:
@@ -155,7 +162,8 @@ services:
       cassandra-cluster:
         ipv4_address: 172.30.0.3
     depends_on:
-       - cassandra01
+       cassandra01:
+         condition: service_healthy
 
 networks:
   cassandra-cluster:
