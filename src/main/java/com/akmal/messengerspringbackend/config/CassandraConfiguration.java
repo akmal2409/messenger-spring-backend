@@ -15,6 +15,8 @@ import org.springframework.data.cassandra.config.AbstractCassandraConfiguration;
 import org.springframework.data.cassandra.config.CqlSessionFactoryBean;
 import org.springframework.data.cassandra.config.SchemaAction;
 import org.springframework.data.cassandra.config.SessionFactoryFactoryBean;
+import org.springframework.data.cassandra.core.AsyncCassandraOperations;
+import org.springframework.data.cassandra.core.AsyncCassandraTemplate;
 import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.core.convert.CassandraConverter;
@@ -57,7 +59,6 @@ public class CassandraConfiguration {
         String.join(",", cassandraProps.getSeeds()),
         this.cassandraProps.getDc(),
         this.cassandraProps.getKeyspace().getName());
-
     return session;
   }
 
@@ -87,6 +88,11 @@ public class CassandraConfiguration {
   @Bean
   CassandraOperations cassandraTemplate(SessionFactory sessionFactory, CassandraConverter converter) {
     return new CassandraTemplate(sessionFactory, converter);
+  }
+
+  @Bean
+  AsyncCassandraOperations asyncCassandraOperations(SessionFactory sessionFactory, CassandraConverter converter) {
+    return new AsyncCassandraTemplate(sessionFactory, converter);
   }
 
   @Bean
