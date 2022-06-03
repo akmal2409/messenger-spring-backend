@@ -19,7 +19,7 @@ public interface SnowflakeGenerator {
 
   long nextId();
 
-  long extractTimestamp(long id);
+  long toTimestampMilli(long id);
 
   long epochMilli();
 

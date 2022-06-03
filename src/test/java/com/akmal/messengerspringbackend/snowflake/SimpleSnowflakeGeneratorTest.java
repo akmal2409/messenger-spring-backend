@@ -123,7 +123,7 @@ class SimpleSnowflakeGeneratorTest {
   void shouldExtractTimestampFromSnowflake() {
     final var generator = SimpleSnowflakeGenerator.defaultInstance();
 
-    final var timestamp = generator.extractTimestamp(generator.nextId());
+    final var timestamp = generator.toTimestampMilli(generator.nextId());
 
     assertThat(timestamp)
         .isBetween(
@@ -138,7 +138,7 @@ class SimpleSnowflakeGeneratorTest {
 
     final var messageId = generator.nextId();
 
-    final var timestamp = generator.extractTimestamp(messageId);
+    final var timestamp = generator.toTimestampMilli(messageId);
 
     final var adjustedInstant = epoch.plusMillis(timestamp);
 

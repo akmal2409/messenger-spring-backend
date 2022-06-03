@@ -60,10 +60,13 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
 
   private SimpleSnowflakeGenerator(long customEpoch, int nodeId) {
     if (nodeId < 0 || nodeId > MAX_NODE_ID) {
-      throw new SnowflakeGeneratorInitializationException("Node ID either is negative or exceeds the maximum value of ".concat(String.valueOf(MAX_NODE_ID)));
+      throw new SnowflakeGeneratorInitializationException(
+          "Node ID either is negative or exceeds the maximum value of "
+              .concat(String.valueOf(MAX_NODE_ID)));
     }
 
-    if (customEpoch < 0) throw new SnowflakeGeneratorInitializationException("Custom epoch cannot be negative");
+    if (customEpoch < 0)
+      throw new SnowflakeGeneratorInitializationException("Custom epoch cannot be negative");
 
     this.customEpoch = customEpoch;
     this.nodeId = nodeId;
@@ -71,7 +74,8 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
   }
 
   private SimpleSnowflakeGenerator(long customEpoch) {
-    if (customEpoch < 0) throw new SnowflakeGeneratorInitializationException("Custom epoch cannot be negative");
+    if (customEpoch < 0)
+      throw new SnowflakeGeneratorInitializationException("Custom epoch cannot be negative");
 
     this.customEpoch = customEpoch;
     this.nodeId = this.generateNodeId();
@@ -126,10 +130,9 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
   }
 
   /**
-   *
    * Snowflake of 64 bits has the next format:
    *
-   * [1 bit (always 0)] [41 bits timestamp] [10 bits machine id] [12 bits seq no]
+   * <p>[1 bit (always 0)] [41 bits timestamp] [10 bits machine id] [12 bits seq no]
    *
    * @return snowflake distributed id.
    */
@@ -140,7 +143,6 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
     long currentTimestamp = this.timestamp();
 
     int seqNo = this.sequenceNumber.getAndUpdate(value -> (value + 1) % (MAX_SEQ_NO + 1));
-
 
     if (currentTimestamp == this.lastTimestamp) {
       if (seqNo == 0) {
@@ -163,19 +165,19 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
   }
 
   /**
-   * Timestamp begins at the 24th bit, therefore we have to shift it by 23 places.
+   * Timestamp begins at the 22nd bit, therefore we have to shift it by 22 places.
    *
    * @param id - snowflake id.
    * @return timestamp in milliseconds since the epoch
    */
   @Override
-  public long extractTimestamp(long id) {
+  public long toTimestampMilli(long id) {
     return id >> SHIFT_BY_FOR_TIMESTAMP;
   }
 
   @Override
   public Instant toInstant(long id) {
-    return Instant.ofEpochMilli(this.customEpoch).plusMillis(this.extractTimestamp(id));
+    return Instant.ofEpochMilli(this.customEpoch).plusMillis(this.toTimestampMilli(id));
   }
 
   @Override
@@ -199,8 +201,8 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
    * reads the MAC address (which can be 48 or 64 bits) as a sequence of bytes and converts it into
    * a string, on which we then call {@link String#hashCode()} to get an integer representation and
    * transform the resulting hashcode to a node id by performing bitwise AND with {@link
-   * SimpleSnowflakeGenerator#MAX_NODE_ID}. W use bitwise AND to ensure that all the MSBs
-   * that exceed MSBs of MAX_NODE_ID are set to 0 and the number stays within the bound.
+   * SimpleSnowflakeGenerator#MAX_NODE_ID}. W use bitwise AND to ensure that all the MSBs that
+   * exceed MSBs of MAX_NODE_ID are set to 0 and the number stays within the bound.
    *
    * @throws SnowflakeGeneratorInitializationException if the generation of the ID fails.
    * @return unique node id within range {0, {@link SimpleSnowflakeGenerator#MAX_NODE_ID}}
@@ -255,7 +257,6 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
     SnowflakeGenerator snowflakeGenerator = SimpleSnowflakeGenerator.withCustomEpoch(customEpoch);
 
     final long snowflake = snowflakeGenerator.nextId();
-
 
     System.out.println("Timestamp " + snowflakeGenerator.toInstant(snowflake));
   }
