@@ -2,10 +2,8 @@ package com.akmal.messengerspringbackend.snowflake;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -24,14 +22,13 @@ class SimpleSnowflakeGeneratorTest {
 
   SimpleSnowflakeGenerator snowflakeGenerator;
 
-
   @Test
-  @DisplayName("Should create an instance of the generator with default epoch (1970) and generate node ID")
+  @DisplayName(
+      "Should create an instance of the generator with default epoch (1970) and generate node ID")
   void shouldCreateInstanceWithDefaultEpochAndNodeId() {
     final var generator = SimpleSnowflakeGenerator.defaultInstance();
 
-    assertThat(generator.epochMilli())
-        .isEqualTo(Instant.EPOCH.toEpochMilli());
+    assertThat(generator.epochMilli()).isEqualTo(Instant.EPOCH.toEpochMilli());
 
     this.assertNodeId(generator);
   }
@@ -41,15 +38,13 @@ class SimpleSnowflakeGeneratorTest {
   void shouldCreateInstanceWithCustomEpoch() {
     final var generator = SimpleSnowflakeGenerator.withCustomEpoch(CUSTOM_EPOCH.toEpochMilli());
 
-    assertThat(generator.epochMilli())
-        .isEqualTo(CUSTOM_EPOCH.toEpochMilli());
+    assertThat(generator.epochMilli()).isEqualTo(CUSTOM_EPOCH.toEpochMilli());
 
     this.assertNodeId(generator);
   }
 
   private void assertNodeId(SnowflakeGenerator snowflakeGenerator) {
-    assertThat(snowflakeGenerator.nodeId())
-        .isBetween(0, ((int) Math.pow(2, 10)));
+    assertThat(snowflakeGenerator.nodeId()).isBetween(0, ((int) Math.pow(2, 10)));
   }
 
   @Test
@@ -57,37 +52,35 @@ class SimpleSnowflakeGeneratorTest {
   void shouldCreateWithNodeId() {
     final var generator = SimpleSnowflakeGenerator.withNodeId(CUSTOM_NODE_ID);
 
-    assertThat(generator.nodeId())
-        .isEqualTo(CUSTOM_NODE_ID);
+    assertThat(generator.nodeId()).isEqualTo(CUSTOM_NODE_ID);
 
-    assertThat(generator.epochMilli())
-        .isEqualTo(Instant.EPOCH.toEpochMilli());
+    assertThat(generator.epochMilli()).isEqualTo(Instant.EPOCH.toEpochMilli());
   }
 
   @Test
-  @DisplayName("Should failt to create an instance with a node id greater than 1023 and smaller than 0")
+  @DisplayName(
+      "Should failt to create an instance with a node id greater than 1023 and smaller than 0")
   void shouldFailWithInvalidNodeId() {
 
-    assertThatThrownBy(() -> {
-      SimpleSnowflakeGenerator.withNodeId(1024);
-    }, "Exception was not thrown even though the node ID exceeds (2^10 - 1)");
+    assertThatThrownBy(
+        () -> SimpleSnowflakeGenerator.withNodeId(1024),
+        "Exception was not thrown even though the node ID exceeds (2^10 - 1)");
 
-    assertThatThrownBy(() -> {
-      SimpleSnowflakeGenerator.withNodeId(-1);
-    }, "Exception was not thrown even though the node ID is less than 0");
+    assertThatThrownBy(
+        () -> SimpleSnowflakeGenerator.withNodeId(-1),
+        "Exception was not thrown even though the node ID is less than 0");
   }
 
   @Test
   @DisplayName("Should create an instance of the generator with custom epoch and node id")
   void shouldCreateWithCustomEpochAndNodeId() {
-    final var generator = SimpleSnowflakeGenerator.withCustomEpochAndNodeId(CUSTOM_EPOCH.toEpochMilli(),
-        CUSTOM_NODE_ID);
+    final var generator =
+        SimpleSnowflakeGenerator.withCustomEpochAndNodeId(
+            CUSTOM_EPOCH.toEpochMilli(), CUSTOM_NODE_ID);
 
-    assertThat(generator.nodeId())
-        .isEqualTo(CUSTOM_NODE_ID);
+    assertThat(generator.nodeId()).isEqualTo(CUSTOM_NODE_ID);
 
-    assertThat(generator.epochMilli())
-        .isEqualTo(CUSTOM_EPOCH.toEpochMilli());
+    assertThat(generator.epochMilli()).isEqualTo(CUSTOM_EPOCH.toEpochMilli());
   }
 
   @Test
@@ -99,15 +92,15 @@ class SimpleSnowflakeGeneratorTest {
     for (int i = 0; i < 1000; i++) {
       long snowflake = generator.nextId();
 
-      assertThat(prevSnowflake)
-          .isLessThan(snowflake);
+      assertThat(prevSnowflake).isLessThan(snowflake);
       prevSnowflake = snowflake;
     }
   }
 
   @Test
-  @DisplayName("Assert that 1 bit is reserved and is always 0 (MSB), 41 bits are for the timestamp, "
-                   + "10 bits for node id and 12 bits for sequence numbers")
+  @DisplayName(
+      "Assert that 1 bit is reserved and is always 0 (MSB), 41 bits are for the timestamp, "
+          + "10 bits for node id and 12 bits for sequence numbers")
   void assertConsistencyOfSnowflakeStructure() {
     final var generator = SimpleSnowflakeGenerator.defaultInstance();
 
@@ -115,11 +108,13 @@ class SimpleSnowflakeGeneratorTest {
 
     final var extraBit = snowflake >> 63;
     final var timestamp = snowflake >> 22;
-    final var nodeId =  (((1 << 22) - 1) & snowflake) >> 12;
+    final var nodeId = (((1 << 22) - 1) & snowflake) >> 12;
 
     assertThat(extraBit).isEqualTo(0);
-    assertThat(timestamp).isBetween(Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
-        Instant.now().plusMillis(DELTA_MS).toEpochMilli());
+    assertThat(timestamp)
+        .isBetween(
+            Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
+            Instant.now().plusMillis(DELTA_MS).toEpochMilli());
     assertThat(nodeId).isEqualTo(generator.nodeId());
   }
 
@@ -130,8 +125,27 @@ class SimpleSnowflakeGeneratorTest {
 
     final var timestamp = generator.extractTimestamp(generator.nextId());
 
-    assertThat(timestamp).isBetween(Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
-        Instant.now().plusMillis(DELTA_MS).toEpochMilli());
+    assertThat(timestamp)
+        .isBetween(
+            Instant.now().minusMillis(DELTA_MS).toEpochMilli(),
+            Instant.now().plusMillis(DELTA_MS).toEpochMilli());
+  }
+
+  @Test
+  void shouldExtractCorrectTimestampFromCustomEpochSnowflake() {
+    final var epoch = Instant.parse("2022-01-01T00:00:00Z");
+    final var generator = SimpleSnowflakeGenerator.withCustomEpoch(epoch.toEpochMilli());
+
+    final var messageId = generator.nextId();
+
+    final var timestamp = generator.extractTimestamp(messageId);
+
+    final var adjustedInstant = epoch.plusMillis(timestamp);
+
+    System.out.println(epoch.toEpochMilli());
+
+    assertThat(adjustedInstant)
+        .isBetween(Instant.now().minusMillis(DELTA_MS), Instant.now().plusMillis(DELTA_MS));
   }
 
   @Test
@@ -142,7 +156,7 @@ class SimpleSnowflakeGeneratorTest {
     final var timestampInstant = generator.toInstant(generator.nextId());
 
     assertThat(timestampInstant).isNotNull();
-    assertThat(timestampInstant).isBetween(Instant.now().minusMillis(DELTA_MS),
-        Instant.now().plusMillis(DELTA_MS));
+    assertThat(timestampInstant)
+        .isBetween(Instant.now().minusMillis(DELTA_MS), Instant.now().plusMillis(DELTA_MS));
   }
 }
