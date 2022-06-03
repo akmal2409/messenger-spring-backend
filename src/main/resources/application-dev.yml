@@ -5,6 +5,9 @@ spring:
       local-datacenter: "Moon"
 
 project:
+  customEpochMilli: 1640995200000
+  bucketing:
+    bucketSize: 7776000000 # 3 months (3 * 30 * 24 * 60 * 60 * 1000) in ms
   cassandra:
     keyspace:
       name: 'Messenger'

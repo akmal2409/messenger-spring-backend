@@ -31,5 +31,17 @@
       "name": "project.cassandra.seeds",
       "type": "java.lang.String",
       "description": "Initial cassandra seed nodes through which we can discover cluster's topology."
+    },
+    {
+      "name": "project.customEpoch",
+      "type": "java.lang.String",
+      "description": "Custom epoch used for snowflakes and bucketing of messages in milliseconds.",
+      "defaultValue": "java.util.time.Instant.EPOCH"
+    },
+    {
+      "name": "project.nodeId",
+      "type": "java.lang.String",
+      "description": "Node ID needed for snowflake generation. if set to -1 the ID will be generated. ID generation is prefered in a large node deployment",
+      "defaultValue": -1
     }
   ] }
