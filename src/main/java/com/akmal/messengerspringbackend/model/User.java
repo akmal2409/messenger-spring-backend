@@ -1,5 +1,7 @@
 package com.akmal.messengerspringbackend.model;
 
+import com.akmal.messengerspringbackend.model.udt.UserUDT;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -8,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.Frozen;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
@@ -31,8 +34,8 @@ public class User {
   private final String lastName;
   @Column("email")
   private final String email;
-  @Column("contact_ids")
-  private final Set<UUID> contactIds;
+  @Column("contacts")
+  private final Set<@Frozen UserUDT> contacts;
   @Column("thread_ids")
   private final Set<UUID> threadIds;
   @Column("profile_thumbnail_url")
@@ -42,14 +45,30 @@ public class User {
 
 
   public User(UUID uid, String firstName, String lastName, String email,
-      Set<UUID> contactIds, Set<UUID> threadIds, String profileThumbnailUrl, String profileImageUrl) {
+      Set<UserUDT> contacts, Set<UUID> threadIds, String profileThumbnailUrl, String profileImageUrl) {
     this.uid = uid;
     this.firstName = firstName;
     this.lastName = lastName;
     this.email = email;
-    this.contactIds = Optional.ofNullable(contactIds).orElse(Collections.emptySet());
+    this.contacts = Optional.ofNullable(contacts).orElse(Collections.emptySet());
     this.threadIds = Optional.ofNullable(threadIds).orElse(Collections.emptySet());
     this.profileThumbnailUrl = profileThumbnailUrl;
     this.profileImageUrl = profileImageUrl;
+  }
+
+  @JsonIgnore
+  public String getFullName() {
+    return String.format("%s %s", this.firstName, this.lastName);
+  }
+
+  public UserUDT toUDT() {
+    return UserUDT.builder()
+               .uid(this.uid)
+               .firstName(this.firstName)
+               .lastName(this.lastName)
+               .profileThumbnailUrl(this.profileThumbnailUrl)
+               .profileImageUrl(this.profileImageUrl)
+               .build();
+
   }
 }
