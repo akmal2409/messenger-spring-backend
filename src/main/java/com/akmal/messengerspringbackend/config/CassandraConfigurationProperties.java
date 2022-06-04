@@ -1,16 +1,13 @@
 package com.akmal.messengerspringbackend.config;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -24,32 +21,23 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "project.cassandra")
 @Validated
 public class CassandraConfigurationProperties {
-  @Setter
-  @Getter
-  @NotNull
-  private KeyspaceMetadata keyspace;
-  @Getter
-  @Setter
-  private String dc = "dc1";
-  @Getter
-  @Setter
-  private String rack = "rack1";
-  @Getter
-  @Setter
-  private Collection<String> seeds;
+  @Setter @Getter @NotNull private KeyspaceMetadata keyspace;
+  @Getter @Setter private String dc = "dc1";
+  @Getter @Setter private String rack = "rack1";
+  @Getter @Setter private String clusterName;
+  @Getter @Setter private Collection<String> seeds;
 
-  @Getter
-  @Setter
-  private ScriptBootstrapConfig schema;
-  @Getter
-  @Setter
-  private ScriptBootstrapConfig data;
+  @Getter @Setter private ScriptBootstrapConfig schema;
+  @Getter @Setter private ScriptBootstrapConfig data;
+
+  @Getter @Setter private Resource driverConfig;
 
   @Getter
   @Setter
   public static class KeyspaceMetadata {
     @NotBlank(message = "Keyspace must not be blank")
     private String name;
+
     private int replicationFactor;
     private boolean durableWrites;
   }
@@ -66,5 +54,4 @@ public class CassandraConfigurationProperties {
       return empty;
     }
   }
-
 }
