@@ -1,5 +1,6 @@
 package com.akmal.messengerspringbackend.model;
 
+import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import java.io.Serializable;
 import java.util.UUID;
 import lombok.Builder;
@@ -47,9 +48,22 @@ public class MessageByUserByThread {
   @Column("body")
   private final String body;
   @Column("is_read")
-  private final boolean isRead;
+  private final boolean read;
   @Column("is_edited")
-  private final boolean isEdited;
+  private final boolean edited;
   @Column("is_system_message")
   private final boolean systemMessage;
+
+  public MessageDTO toDTO() {
+    return new MessageDTO(
+        this.key.messageId,
+        this.key.threadId.toString(),
+        this.key.bucket,
+        this.authorId.toString(),
+        this.body,
+        this.read,
+        this.edited,
+        this.isSystemMessage()
+    );
+  }
 }
