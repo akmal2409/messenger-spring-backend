@@ -15,7 +15,6 @@ import com.datastax.oss.driver.api.core.servererrors.WriteFailureException;
 import com.datastax.oss.driver.api.core.servererrors.WriteType;
 import com.datastax.oss.driver.api.core.session.Request;
 import com.datastax.oss.driver.internal.core.retry.ConsistencyDowngradingRetryVerdict;
-import com.datastax.oss.driver.shaded.guava.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
