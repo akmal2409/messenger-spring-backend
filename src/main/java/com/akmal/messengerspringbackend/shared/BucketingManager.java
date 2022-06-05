@@ -35,7 +35,8 @@ public class BucketingManager {
    * Creates the bucket based on the current timestamp.
    * The calculation is following: timestamp/bucketSize, where both variables
    * are in milliseconds.
-   * @return
+   *
+   * @return bucket number.
    */
   public int makeBucket() {
     long msSinceEpoch = Instant.now()
@@ -59,6 +60,14 @@ public class BucketingManager {
     return (int) (timestamp / bucketSize);
   }
 
+  public int makeBucketForTimestamp(long timestamp) {
+    return (int) (timestamp / bucketSize);
+  }
+
+  public long adjustTimestampToCustomEpoch(long timestamp) {
+    return timestamp - this.projectProps.getCustomEpochMilli();
+  }
+
   /**
    * Produces a list of buckets between given two snowflakes.
    * For example, suppose we want to get all buckets between the messageId (snowflake)
@@ -72,5 +81,10 @@ public class BucketingManager {
   public List<Integer> makeBuckets(long startSnowflake, long endSnowflake) {
     return IntStream.range(this.makeBucket(startSnowflake), this.makeBucket(endSnowflake) + 1)
                .boxed().toList();
+  }
+
+  public List<Integer> makeBucketsFromTimestampTillBucket(long timestamp, int bucket) {
+    return IntStream.range(this.makeBucketForTimestamp(timestamp),
+        bucket + 1).boxed().toList();
   }
 }
