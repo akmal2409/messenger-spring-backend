@@ -1,11 +1,14 @@
 package com.akmal.messengerspringbackend.repository;
 
+import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread;
 import com.akmal.messengerspringbackend.model.ThreadByUserByLastMessage;
 import java.util.Collection;
 import java.util.UUID;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.cassandra.core.WriteResult;
-import org.springframework.data.domain.Pageable;
 
 /**
  * The repository is specific to the cassandra data model and
@@ -30,8 +33,12 @@ public interface MessageRepository {
    * @param pageable - optional pagination properties.
    * @return
    */
-  Collection<MessageByUserByThread> findAllByUidAndThreadIdAndBucket(UUID uid,
-      UUID threadId, int bucket, Pageable pageable);
+  ScrollContent<MessageByUserByThread> findAllByUidAndThreadIdAndBucket(
+      @NotNull UUID uid, @NotNull UUID threadId, int bucket, int size, @Nullable String pagingState);
+
+  ScrollContent<MessageByUserByThread> findAllBeforeMessageId(
+      @NotNull UUID uid, @NotNull UUID threadId, int bucket, int size, long messageId
+  );
 
   /**
    * Saves the message in a partition for a given user, thread and a bucket.
@@ -41,6 +48,7 @@ public interface MessageRepository {
    * @param message                   - valid message object.
    * @return saved message entity.
    */
-  WriteResult saveMessageForAllThreadMembers(Collection<MessageByUserByThread> messages,
-      Collection<ThreadByUserByLastMessage> latestThreads);
+  @Contract(pure = true)
+  WriteResult saveMessageForAllThreadMembers(@NotNull Collection<MessageByUserByThread> messages,
+      @NotNull Collection<ThreadByUserByLastMessage> latestThreads);
 }
