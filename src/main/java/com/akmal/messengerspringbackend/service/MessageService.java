@@ -49,6 +49,45 @@ public class MessageService {
   private final SnowflakeGenerator snowflakeGenerator;
   private final BucketingManager bucketingManager;
 
+  /**
+   * The method fetched the collection of messages with size <= {@link MessageService#FETCH_SIZE}.
+   * The method resolves the data access path based on the following strategy:
+   * <ul>
+   *   <li>
+   *    If beforeMessageId is provided and the bucket is valid, then we use the
+   *    {@link MessageRepository#findAllBeforeMessageId(UUID, UUID, int, int, long)} contract
+   *    to find all messages in a bucket with message id strictly smaller than the provided one.
+   *   </li>
+   *   <li>
+   *     If only bucket is provided and optionally the pagingState (scroll state - a series of bytes,
+   *     that helps the DSE driver to find the particular offset it stopped reading at before), then we
+   *     use {@link MessageRepository#findAllByUidAndThreadIdAndBucket(UUID, UUID, int, int, String)}
+   *     contract to find all messages limited by the {@link MessageService#FETCH_SIZE} in the database
+   *     based on the user id, thread id and a bucket (+ optional pagingState).
+   *   </li>
+   *   <li>
+   *     If none of the above-mentioned arguments were present it defaults to the bucket based on
+   *     the current timestamp and uses the same contract as in the second resolution strategy (the one above).
+   *   </li>
+   * </ul>
+   *
+   * However, some buckets might not have enough of data to satisfy the size == {@link MessageService#FETCH_SIZE}
+   * due to the small amount of data in the time bucket or simply paging state was applied that was just
+   * at the end of the time bucket. Therefore, following resolution algorithm has been developed, see
+   * {@link MessageService#aggregateStartingFromBucket(UUID, UUID, Integer, ScrollContent)} because
+   * current method uses that resolution.
+   *
+   * On the other hand, there are also several conditions for the above-mentioned algorithm not
+   * to start execution such as: size has been satisfied or the next bucket (currentBucket - 1) is out
+   * of positive range (< 0) which simply indicates that there is no data.
+   *
+   * @param uid
+   * @param threadId
+   * @param bucket
+   * @param beforeMessageId
+   * @param pagingState
+   * @return
+   */
   @Contract(
       pure = true,
       value = "null,null,_,_,_ -> fail; null,_,_,_,_ -> fail; _,null,_,_,_ -> fail")
@@ -103,6 +142,35 @@ public class MessageService {
         uid, threadId, bucket, FETCH_SIZE, pagingState);
   }
 
+  /**
+   * A custom algorithm that can scans iteratevely other buckets in case the initial content
+   * size is smaller than {@link MessageService#FETCH_SIZE}.
+   *
+   * The algorithm works in the following way:
+   * <ul>
+   *   <li>
+   *     Firstly, it extracts the timestamp from the thread id, which under the hood is
+   *     a 128bit {@link Uuids#timeBased()} in Cassandra. Hence, using the {@link Uuids#unixTimestamp(UUID)}
+   *     we can get the number of milliseconds from the epoch (1970 Jan). Thereafter, we
+   *     have to adjust it with respect to the custom epoch, which is used to create time buckets
+   *     and snowflakes. Once the timestamp is extracted, we have already bucket number that
+   *     we haven't yet explored (in the method calling aggregation we deliberately decrement the
+   *     bucket number and pass it here. Therefore, we can create a range of buckets
+   *     from the thread creation time till the last unexplored bucket (inclusive).
+   *   </li>
+   *   <li>
+   *     Thereafter, we can iteratively go through the buckets in the reverse way collecting
+   *     the messages until we either hit a dead end or we have enough of data. We have to also record
+   *     the pagination state for the last set of records that we have fetched and included because
+   *     that will help us to resolve the next set of data.
+   *   </li>
+   * </ul>
+   * @param uid
+   * @param threadId
+   * @param bucket
+   * @param messages
+   * @return
+   */
   private ScrollContent<MessageByUserByThread> aggregateStartingFromBucket(
       @NotNull UUID uid,
       @NotNull UUID threadId,
