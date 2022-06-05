@@ -1,14 +1,18 @@
 package com.akmal.messengerspringbackend.controller.v1.rest;
 
+import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSendRequestDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSentResponseDTO;
+import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.service.MessageService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -32,4 +36,18 @@ public class MessageController {
       @RequestBody MessageSendRequestDTO messageRequest) {
     return this.messageService.sendMessage(threadId, userId, messageRequest);
   }
+
+  @GetMapping
+  public ScrollContent<MessageDTO> getMessagesByUserByThreadByBucket(
+      @PathVariable UUID userId,
+      @PathVariable UUID threadId,
+      @RequestParam(required = false) Integer bucket,
+      @RequestParam(required = false) String pagingState,
+      @RequestParam(required = false) Long beforeMessageId
+  ) {
+    return this.messageService
+               .findAllByUserAndThreadAndBucket(userId,
+                   threadId, bucket, beforeMessageId, pagingState);
+  }
+
 }
