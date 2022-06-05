@@ -47,6 +47,6 @@
     {
       "name": "project.bucketing.bucketSize",
       "type": "java.lang.Long",
-      "description": "The size in milliseconds of how to partition the data. For example: if the bucket size is 3 months records will be split into partitions of 3 months each based on the time id.",
+      "description": "The size in milliseconds of how to partition the data. For example: if the bucket size is 3 months records will be split into partitions of 3 months each based on the time id."
     }
   ] }
