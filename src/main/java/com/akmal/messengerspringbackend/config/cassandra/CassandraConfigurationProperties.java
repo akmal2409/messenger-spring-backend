@@ -1,4 +1,4 @@
-package com.akmal.messengerspringbackend.config;
+package com.akmal.messengerspringbackend.config.cassandra;
 
 import java.util.Collection;
 import javax.validation.constraints.NotBlank;

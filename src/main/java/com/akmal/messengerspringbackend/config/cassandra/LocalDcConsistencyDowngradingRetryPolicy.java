@@ -1,4 +1,4 @@
-package com.akmal.messengerspringbackend.config;
+package com.akmal.messengerspringbackend.config.cassandra;
 
 import com.akmal.messengerspringbackend.config.condition.DseCustomDriverOption;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
