@@ -35,6 +35,11 @@ services:
   broker01:
     image: confluentinc/cp-kafka:latest
     container_name: "broker01"
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server broker01:29092 --describe" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
     ports:
       - "9092:9092"
     networks:
@@ -45,7 +50,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,PLAINTEXT_INTERNAL://broker01:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -59,6 +64,11 @@ services:
   broker02:
     image: confluentinc/cp-kafka:latest
     container_name: "broker02"
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server broker02:29093 --describe" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
     ports:
       - "9093:9093"
     networks:
@@ -69,7 +79,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9093,PLAINTEXT_INTERNAL://broker02:29093
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -80,20 +90,23 @@ services:
       - ./data/broker02/data:/var/lib/kafka/data
     user: "0:0"
 
-#  schema-registry:
-#    image: confluentinc/cp-schema-registry:latest
-#    container_name: 'schema-registry'
-#    environment:
-#      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker01:29092,PLAINTEXT://broker02:29093'
-#      SCHEMA_REGISTRY_HOST_NAME: 'schema-registry'
-#      SCHEMA_REGISTRY_LISTENERS: 'http://127.0.0.1:8081'
-#    depends_on:
-#      - broker01
-#      - broker02
-#    ports:
-#      - '8081:8081'
-#    networks:
-#      - kafka-cluster
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    container_name: 'schema-registry'
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker01:29092,PLAINTEXT://broker02:29093'
+      SCHEMA_REGISTRY_HOST_NAME: 'schema-registry'
+      SCHEMA_REGISTRY_LISTENERS: 'http://0.0.0.0:8081'
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      broker01:
+        condition: service_healthy
+
+    ports:
+      - '8081:8081'
+    networks:
+      - kafka-cluster
 
 #  Cassandra
   cassandra01:
@@ -119,7 +132,7 @@ services:
       SNITCH: 'GossipingPropertyFileSnitch'
       DC: 'Moon'
       RACK: 'West'
-      JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx512g'
     networks:
       cassandra-cluster:
         ipv4_address: 172.30.0.2
@@ -153,7 +166,7 @@ services:
       SNITCH: 'GossipingPropertyFileSnitch'
       DC: 'Moon'
       RACK: 'West'
-      JVM_EXTRA_OPTS: '-Xms256m -Xmx1g'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx512g'
     cap_add:
       - IPC_LOCK # Allow DSE to lock memory with mlock
     ulimits:
