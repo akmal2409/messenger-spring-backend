@@ -63,7 +63,7 @@ public class MessageRepositoryImpl implements MessageRepository {
       try {
         parsedPaginState = PagingState.fromString(pagingState).getRawPagingState();
       } catch (IllegalArgumentException e) {
-        //ignore
+        log.error("type=exception; reason=Paging state parsing failed; value={}", pagingState, e);
       }
 
       statement =
@@ -108,9 +108,6 @@ public class MessageRepositoryImpl implements MessageRepository {
           this.cassandraOperations.getConverter().read(clazz, row));
     }
 
-    System.out.println("PAGING STATE " + resultSet.getExecutionInfo().getSafePagingState());
-
-
     return ScrollContent.of(content, pagingState);
   }
 
@@ -145,6 +142,7 @@ public class MessageRepositoryImpl implements MessageRepository {
       threadFuture.addCallback(
           res -> countDownLatch.countDown(), error -> countDownLatch.countDown());
     }
+
 
     try {
       countDownLatch.await(5, TimeUnit.SECONDS);
