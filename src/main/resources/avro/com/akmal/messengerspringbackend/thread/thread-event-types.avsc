@@ -1,0 +1,4 @@
+[
+  "com.akmal.messengerspringbackend.thread.ThreadMessageEvent",
+  "com.akmal.messengerspringbackend.thread.ThreadPresenceEvent"
+]

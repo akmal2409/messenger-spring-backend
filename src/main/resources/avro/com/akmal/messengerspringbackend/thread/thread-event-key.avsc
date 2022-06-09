@@ -1,0 +1,18 @@
+{
+  "namespace": "com.akmal.messengerspringbackend.thread",
+  "name": "ThreadEventKey",
+  "type": "record",
+  "doc": "Composite key for the thread events",
+  "fields": [
+    {
+      "name": "threadId",
+      "type": "string",
+      "doc": "Thread UUID (time based)"
+    },
+    {
+      "name": "uid",
+      "type": "string",
+      "doc": "User UUID"
+    }
+  ]
+}

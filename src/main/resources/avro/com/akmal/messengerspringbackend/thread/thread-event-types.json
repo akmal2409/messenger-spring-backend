@@ -1,0 +1,15 @@
+{
+  "schema": "[\"com.akmal.messengerspringbackend.thread.ThreadMessageEvent\", \"com.akmal.messengerspringbackend.thread.ThreadPresenceEvent\"]",
+  "references": [
+    {
+      "name": "com.akmal.messengerspringbackend.thread.ThreadMessageEvent",
+      "subject": "thread.events-com.akmal.messengerspringbackend.thread.ThreadMessageEvent",
+      "version": 2
+    },
+    {
+      "name": "com.akmal.messengerspringbackend.thread.ThreadPresenceEvent",
+      "subject": "thread.events-com.akmal.messengerspringbackend.thread.ThreadPresenceEvent",
+      "version": 2
+    }
+  ]
+}

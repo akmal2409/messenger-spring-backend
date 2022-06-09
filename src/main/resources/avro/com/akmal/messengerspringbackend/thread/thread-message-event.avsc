@@ -1,0 +1,58 @@
+{
+  "namespace": "com.akmal.messengerspringbackend.thread",
+  "doc": "Every chat message fired for a specific thread and user will be represented as this event",
+  "name": "ThreadMessageEvent",
+  "type": "record",
+  "fields": [
+    {
+      "name": "toUser",
+      "type": "string",
+      "doc": "UUID of a user for whom the message is intended"
+    },
+    {
+      "name": "messageId",
+      "type": "long",
+      "doc": "Message ID snowflake (sortable and globally unique)",
+      "default": -1
+    },
+    {
+      "name": "threadId",
+      "type": "string",
+      "doc": "Thread UUID (time based)"
+    },
+    {
+      "name": "bucket",
+      "type": "int",
+      "doc": "Time bucket where it was placed in the database",
+      "default": -1
+    },
+    {
+      "name": "authorId",
+      "type": "string",
+      "doc": "Author UUID"
+    },
+    {
+      "name": "body",
+      "type": "string",
+      "doc": "Message body"
+    },
+    {
+      "name": "read",
+      "type": "boolean",
+      "doc": "Indicated whether the message has been read",
+      "default": false
+    },
+    {
+      "name": "edited",
+      "type": "boolean",
+      "doc": "Indicated whether the message has been edited",
+      "default": false
+    },
+    {
+      "name": "systemMessage",
+      "type": "boolean",
+      "doc": "Indicated whether the message has been read",
+      "default": false
+    }
+  ]
+}

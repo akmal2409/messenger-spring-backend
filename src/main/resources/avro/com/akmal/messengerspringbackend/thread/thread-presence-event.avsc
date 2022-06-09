@@ -1,0 +1,25 @@
+{
+  "namespace": "com.akmal.messengerspringbackend.thread",
+  "name": "ThreadPresenceEvent",
+  "doc": "Presence events such as typing, left joined the thread",
+  "type": "record",
+  "fields": [
+    {
+      "name": "type",
+      "type": ["null",
+        {
+          "name": "PresenceEventType",
+          "type": "enum",
+          "doc": "Type of the user presence event",
+          "symbols": ["TYPING", "LEFT", "JOINED"]
+        }],
+      "default": null
+    },
+    {
+      "name": "systemMessage",
+      "type": ["null", "string"],
+      "doc": "Optional system message with the event",
+      "default": null
+    }
+  ]
+}
