@@ -18,7 +18,6 @@ import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -185,7 +184,6 @@ public class MessageService {
 
     int i = buckets.size() - 1;
     int messagesToFetch = FETCH_SIZE - messages.content().size();
-    String startPagingState = messages.pagingState();
     String lastPagingState = null;
 
     final List<MessageByUserByThread> aggregatedMessages = new LinkedList<>(messages.content());
@@ -194,11 +192,10 @@ public class MessageService {
       int currentBucket = buckets.get(i--);
       ScrollContent<MessageByUserByThread> scrollContent =
           this.messageRepository.findAllByUidAndThreadIdAndBucket(
-              uid, threadId, currentBucket, messagesToFetch, startPagingState);
+              uid, threadId, currentBucket, messagesToFetch, null);
 
       aggregatedMessages.addAll(scrollContent.content());
       lastPagingState = scrollContent.pagingState();
-      startPagingState = null; // if paging state was provided, apply it for the first bucket only
       messagesToFetch -= scrollContent.content().size();
     }
 
