@@ -14,9 +14,17 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>messenger-spring-backend</name>
   <description>messenger-spring-backend</description>
+
   <properties>
     <java.version>17</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <schemaRegistryUrl>http://127.0.0.1:8081</schemaRegistryUrl>
+    <io.confluent.schema-registry.version>7.1.1</io.confluent.schema-registry.version>
+    <avro.schemas.folder>src/main/resources/avro/com/akmal/messengerspringbackend</avro.schemas.folder>
+    <avro.version>1.11.0</avro.version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -41,11 +49,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-websocket</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
     </dependency>
 
     <dependency>
@@ -86,9 +89,29 @@
     <dependency>
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
-      <version>RELEASE</version>
+      <version>23.0.0</version>
       <scope>compile</scope>
     </dependency>
+
+    <!-- Kafka and Avro -->
+
+    <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-avro-serializer</artifactId>
+      <version>${io.confluent.schema-registry.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -105,7 +128,90 @@
           </excludes>
         </configuration>
       </plugin>
+
+<!--     Avro -->
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>${avro.version}</version>
+        <configuration>
+          <sourceDirectory>${project.basedir}/src/main/resources/avro/com/akmal/messengerspringbackend</sourceDirectory>
+          <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+          <includes>
+            <include>**/*.avsc</include>
+          </includes>
+          <imports>
+            <import>${project.basedir}/src/main/resources/avro/com/akmal/messengerspringbackend/thread/thread-message-event.avsc</import>
+            <import>${project.basedir}/src/main/resources/avro/com/akmal/messengerspringbackend/thread/thread-presence-event.avsc</import>
+          </imports>
+
+        </configuration>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.confluent</groupId>
+        <artifactId>kafka-schema-registry-maven-plugin</artifactId>
+        <version>${io.confluent.schema-registry.version}</version>
+        <configuration>
+          <outputDirectory>src/main/avro</outputDirectory>
+          <schemaRegistryUrls>
+            <param>${schemaRegistryUrl}</param>
+          </schemaRegistryUrls>
+          <subjects>
+            <thread.event.types>${avro.schemas.folder}/thread/thread-event-types.avsc</thread.event.types>
+            <thread.message.event>${avro.schemas.folder}/thread/thread-message-event.avsc</thread.message.event>
+            <thread.presence.event>${avro.schemas.folder}/thread/thread-presence-event.avsc</thread.presence.event>
+            <thread.event.key>${avro.schemas.folder}/thread/thread-event-key.avsc</thread.event.key>
+          </subjects>
+          <schemaTypes>
+            <thread.event.types>AVRO</thread.event.types>
+            <thread.message.event>AVRO</thread.message.event>
+            <thread.presence.event>AVRO</thread.presence.event>
+            <thread.event.key>AVRO</thread.event.key>
+          </schemaTypes>
+          <references>
+            <thread-event-types>
+              <reference>
+                <name>com.akmal.messengerspringbackend.thread.ThreadMessageEvent</name>
+                <subject>thread.message.event</subject>
+                <version>1</version>
+              </reference>
+              <reference>
+                <name>com.akmal.messengerspringbackend.thread.ThreadPresenceEvent</name>
+                <subject>thread.presence.event</subject>
+                <version>1</version>
+              </reference>
+            </thread-event-types>
+          </references>
+        </configuration>
+        <goals>
+          <goal>test-compatibility</goal>
+        </goals>
+      </plugin>
+
     </plugins>
   </build>
+
+  <repositories>
+    <repository>
+      <id>confluent</id>
+      <name>Confluent</name>
+      <url>https://packages.confluent.io/maven/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+    </pluginRepository>
+  </pluginRepositories>
 
 </project>
