@@ -8,6 +8,15 @@ project:
   customEpochMilli: 1640995200000
   bucketing:
     bucketSize: 7776000000 # 3 months (3 * 30 * 24 * 60 * 60 * 1000) in ms
+  kafka:
+    bootstrap-servers: '127.0.0.1:9092,127.0.0.1:9093'
+    value-deserializer: 'io.confluent.kafka.serializers.KafkaAvroDeserializer'
+    value-serializer: 'io.confluent.kafka.serializers.KafkaAvroSerializer'
+    key-deserializer: 'io.confluent.kafka.serializers.KafkaAvroDeserializer'
+    key-serializer: 'io.confluent.kafka.serializers.KafkaAvroSerializer'
+    topics:
+      thread-events: "thread.events"
+    group-id: "instance01"
   cassandra:
     keyspace:
       name: 'Messenger'
