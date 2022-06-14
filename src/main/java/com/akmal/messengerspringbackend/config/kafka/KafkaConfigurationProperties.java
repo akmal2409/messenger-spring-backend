@@ -14,6 +14,7 @@ import org.apache.kafka.clients.consumer.CooperativeStickyAssignor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,8 +52,13 @@ public class KafkaConfigurationProperties {
         ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, this.partitionAssignmentStrategy);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, this.autoOffsetReset);
 
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, Class.forName(keyDeserializer));
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, Class.forName(valueDeserializer));
+    final Class<?> valueDeSerializerClass =
+        Thread.currentThread().getContextClassLoader().loadClass(valueDeserializer);
+    final Class<?> keyDeSerializerClass =
+        Thread.currentThread().getContextClassLoader().loadClass(keyDeserializer);
+
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeSerializerClass);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeSerializerClass);
     props.put(ConsumerConfig.GROUP_ID_CONFIG, this.groupId);
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServers);
 

@@ -15,3 +15,6 @@ target/
 data/
 
 docker-compose-old1.yml
+/src/main/java/com/akmal/messengerspringbackend/config/security/TestSecurityConfig.java
+/src/main/java/avro
+/src/main/java/com/akmal/messengerspringbackend/thread/

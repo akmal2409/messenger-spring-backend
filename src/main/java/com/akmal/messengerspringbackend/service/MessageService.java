@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ public class MessageService {
   private final ThreadRepository threadRepository;
   private final SnowflakeGenerator snowflakeGenerator;
   private final BucketingManager bucketingManager;
-  private final KafkaTemplate<ThreadEventKey, SpecificRecord> threadEventsTemplate;
+  private final KafkaTemplate<SpecificRecordBase, SpecificRecordBase> threadEventsTemplate;
   private final KafkaConfigurationProperties kafkaProps;
 
   /**
@@ -304,7 +305,7 @@ public class MessageService {
     }
   }
 
-  private Tuple<ThreadEventKey, ThreadMessageEvent> prepareMessageEvent(
+  private Tuple<SpecificRecordBase, SpecificRecordBase> prepareMessageEvent(
       UUID threadId, UUID recipientUid, String messageBody, long messageId,
       UUID authorId, int bucket
   ) {

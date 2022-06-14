@@ -1,9 +1,9 @@
 package com.akmal.messengerspringbackend.config.kafka;
 
 import com.akmal.messengerspringbackend.thread.ThreadEventKey;
-import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -43,12 +43,12 @@ public class KafkaConfiguration {
   }
 
   @Bean
-  ProducerFactory<ThreadEventKey, SpecificRecord> producerFactory() throws ClassNotFoundException {
+  ProducerFactory<SpecificRecordBase, SpecificRecordBase> producerFactory() throws ClassNotFoundException {
     return new DefaultKafkaProducerFactory<>(this.kafkaProps.producerProps());
   }
 
   @Bean
-  KafkaTemplate<ThreadEventKey, SpecificRecord> kafkaTemplate(ProducerFactory<ThreadEventKey, SpecificRecord> factory) {
+  KafkaTemplate<SpecificRecordBase, SpecificRecordBase> kafkaTemplate(ProducerFactory<SpecificRecordBase, SpecificRecordBase> factory) {
     return new KafkaTemplate<>(factory);
   }
 }
