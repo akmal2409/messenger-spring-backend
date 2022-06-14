@@ -43,6 +43,8 @@ public class KafkaConfigurationProperties {
 
   @Getter @Setter private SchemaRegistryConfig schemaRegistry = SchemaRegistryConfig.withDefaults();
 
+  @Getter @Setter private TopicNames topics;
+
   Map<String, Object> consumerProps() throws ClassNotFoundException {
     final var props = new HashMap<String, Object>();
     props.put(
@@ -97,6 +99,11 @@ public class KafkaConfigurationProperties {
           TopicNameStrategy.class.getName());
     }
     return props;
+  }
+
+  @Data
+  public static class TopicNames {
+    private String threadEvents;
   }
 
   @Data
