@@ -1,8 +1,9 @@
-# For development env
-#spring:
-#  data:
-#    cassandra:
-#      local-datacenter: "Moon"
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: "*"
 
 project:
   customEpochMilli: 1640995200000
