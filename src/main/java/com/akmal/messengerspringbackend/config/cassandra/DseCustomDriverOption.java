@@ -1,4 +1,4 @@
-package com.akmal.messengerspringbackend.config.condition;
+package com.akmal.messengerspringbackend.config.cassandra;
 
 import com.datastax.oss.driver.api.core.config.DriverOption;
 import edu.umd.cs.findbugs.annotations.NonNull;

@@ -1,4 +1,4 @@
-package com.akmal.messengerspringbackend.config.condition;
+package com.akmal.messengerspringbackend.config;
 
 import com.akmal.messengerspringbackend.config.ProjectConfigurationProperties;
 import com.akmal.messengerspringbackend.snowflake.SimpleSnowflakeGenerator;

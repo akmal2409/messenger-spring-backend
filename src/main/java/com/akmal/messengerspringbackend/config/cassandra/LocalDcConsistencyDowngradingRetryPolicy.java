@@ -1,6 +1,5 @@
 package com.akmal.messengerspringbackend.config.cassandra;
 
-import com.akmal.messengerspringbackend.config.condition.DseCustomDriverOption;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.config.DriverExecutionProfile;
 import com.datastax.oss.driver.api.core.connection.ClosedConnectionException;
