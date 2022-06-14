@@ -1,5 +1,6 @@
 package com.akmal.messengerspringbackend.service;
 
+import com.akmal.messengerspringbackend.config.kafka.KafkaConfigurationProperties;
 import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSendRequestDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSentResponseDTO;
@@ -16,18 +17,27 @@ import com.akmal.messengerspringbackend.repository.MessageRepository;
 import com.akmal.messengerspringbackend.repository.ThreadRepository;
 import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
+import com.akmal.messengerspringbackend.shared.datastructure.Tuple;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
+import com.akmal.messengerspringbackend.thread.ThreadEventKey;
+import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,38 +57,37 @@ public class MessageService {
   private final ThreadRepository threadRepository;
   private final SnowflakeGenerator snowflakeGenerator;
   private final BucketingManager bucketingManager;
+  private final KafkaTemplate<ThreadEventKey, SpecificRecord> threadEventsTemplate;
+  private final KafkaConfigurationProperties kafkaProps;
 
   /**
    * The method fetched the collection of messages with size <= {@link MessageService#FETCH_SIZE}.
    * The method resolves the data access path based on the following strategy:
+   *
    * <ul>
-   *   <li>
-   *    If beforeMessageId is provided and the bucket is valid, then we use the
-   *    {@link MessageRepository#findAllBeforeMessageId(UUID, UUID, int, int, long)} contract
-   *    to find all messages in a bucket with message id strictly smaller than the provided one.
-   *   </li>
-   *   <li>
-   *     If only bucket is provided and optionally the pagingState (scroll state - a series of bytes,
-   *     that helps the DSE driver to find the particular offset it stopped reading at before), then we
-   *     use {@link MessageRepository#findAllByUidAndThreadIdAndBucket(UUID, UUID, int, int, String)}
-   *     contract to find all messages limited by the {@link MessageService#FETCH_SIZE} in the database
-   *     based on the user id, thread id and a bucket (+ optional pagingState).
-   *   </li>
-   *   <li>
-   *     If none of the above-mentioned arguments were present it defaults to the bucket based on
-   *     the current timestamp and uses the same contract as in the second resolution strategy (the one above).
-   *   </li>
+   *   <li>If beforeMessageId is provided and the bucket is valid, then we use the {@link
+   *       MessageRepository#findAllBeforeMessageId(UUID, UUID, int, int, long)} contract to find
+   *       all messages in a bucket with message id strictly smaller than the provided one.
+   *   <li>If only bucket is provided and optionally the pagingState (scroll state - a series of
+   *       bytes, that helps the DSE driver to find the particular offset it stopped reading at
+   *       before), then we use {@link MessageRepository#findAllByUidAndThreadIdAndBucket(UUID,
+   *       UUID, int, int, String)} contract to find all messages limited by the {@link
+   *       MessageService#FETCH_SIZE} in the database based on the user id, thread id and a bucket
+   *       (+ optional pagingState).
+   *   <li>If none of the above-mentioned arguments were present it defaults to the bucket based on
+   *       the current timestamp and uses the same contract as in the second resolution strategy
+   *       (the one above).
    * </ul>
    *
-   * However, some buckets might not have enough of data to satisfy the size == {@link MessageService#FETCH_SIZE}
-   * due to the small amount of data in the time bucket or simply paging state was applied that was just
-   * at the end of the time bucket. Therefore, following resolution algorithm has been developed, see
-   * {@link MessageService#aggregateStartingFromBucket(UUID, UUID, Integer, ScrollContent)} because
-   * current method uses that resolution.
+   * However, some buckets might not have enough of data to satisfy the size == {@link
+   * MessageService#FETCH_SIZE} due to the small amount of data in the time bucket or simply paging
+   * state was applied that was just at the end of the time bucket. Therefore, following resolution
+   * algorithm has been developed, see {@link MessageService#aggregateStartingFromBucket(UUID, UUID,
+   * Integer, ScrollContent)} because current method uses that resolution.
    *
-   * On the other hand, there are also several conditions for the above-mentioned algorithm not
-   * to start execution such as: size has been satisfied or the next bucket (currentBucket - 1) is out
-   * of positive range (< 0) which simply indicates that there is no data.
+   * <p>On the other hand, there are also several conditions for the above-mentioned algorithm not
+   * to start execution such as: size has been satisfied or the next bucket (currentBucket - 1) is
+   * out of positive range (< 0) which simply indicates that there is no data.
    *
    * @param uid
    * @param threadId
@@ -112,10 +121,11 @@ public class MessageService {
     resolvedBucket--; // if we reached the FETCH_SIZE then technically bucket might contain
     // some data, however, this variable is used for further aggregation and if we did not manage
     // to accumulate enough of messages, then we have to look in the earlier buckets, however,
-    // we must verify that the earlier bucket exists, if it doesn't then we have to return what we have
+    // we must verify that the earlier bucket exists, if it doesn't then we have to return what we
+    // have
 
-    if (messages.content().size() == FETCH_SIZE || resolvedBucket < 0) return this.mapScrollContentToDTO(messages);
-
+    if (messages.content().size() == FETCH_SIZE || resolvedBucket < 0)
+      return this.mapScrollContentToDTO(messages);
 
     return this.mapScrollContentToDTO(
         this.aggregateStartingFromBucket(uid, threadId, resolvedBucket, messages));
@@ -142,28 +152,27 @@ public class MessageService {
   }
 
   /**
-   * A custom algorithm that can scans iteratevely other buckets in case the initial content
-   * size is smaller than {@link MessageService#FETCH_SIZE}.
+   * A custom algorithm that can scans iteratevely other buckets in case the initial content size is
+   * smaller than {@link MessageService#FETCH_SIZE}.
    *
-   * The algorithm works in the following way:
+   * <p>The algorithm works in the following way:
+   *
    * <ul>
-   *   <li>
-   *     Firstly, it extracts the timestamp from the thread id, which under the hood is
-   *     a 128bit {@link Uuids#timeBased()} in Cassandra. Hence, using the {@link Uuids#unixTimestamp(UUID)}
-   *     we can get the number of milliseconds from the epoch (1970 Jan). Thereafter, we
-   *     have to adjust it with respect to the custom epoch, which is used to create time buckets
-   *     and snowflakes. Once the timestamp is extracted, we have already bucket number that
-   *     we haven't yet explored (in the method calling aggregation we deliberately decrement the
-   *     bucket number and pass it here. Therefore, we can create a range of buckets
-   *     from the thread creation time till the last unexplored bucket (inclusive).
-   *   </li>
-   *   <li>
-   *     Thereafter, we can iteratively go through the buckets in the reverse way collecting
-   *     the messages until we either hit a dead end or we have enough of data. We have to also record
-   *     the pagination state for the last set of records that we have fetched and included because
-   *     that will help us to resolve the next set of data.
-   *   </li>
+   *   <li>Firstly, it extracts the timestamp from the thread id, which under the hood is a 128bit
+   *       {@link Uuids#timeBased()} in Cassandra. Hence, using the {@link
+   *       Uuids#unixTimestamp(UUID)} we can get the number of milliseconds from the epoch (1970
+   *       Jan). Thereafter, we have to adjust it with respect to the custom epoch, which is used to
+   *       create time buckets and snowflakes. Once the timestamp is extracted, we have already
+   *       bucket number that we haven't yet explored (in the method calling aggregation we
+   *       deliberately decrement the bucket number and pass it here. Therefore, we can create a
+   *       range of buckets from the thread creation time till the last unexplored bucket
+   *       (inclusive).
+   *   <li>Thereafter, we can iteratively go through the buckets in the reverse way collecting the
+   *       messages until we either hit a dead end or we have enough of data. We have to also record
+   *       the pagination state for the last set of records that we have fetched and included
+   *       because that will help us to resolve the next set of data.
    * </ul>
+   *
    * @param uid
    * @param threadId
    * @param bucket
@@ -256,9 +265,64 @@ public class MessageService {
     }
 
     this.messageRepository.saveMessageForAllThreadMembers(messages, threads);
+    this.fanoutMessages(thread.getThreadId(),
+        thread.getMembers().stream().map(UserUDT::getUid).collect(Collectors.toSet()),
+        new HashSet<>(Collections.singletonList(authorId)),
+        messageSendRequest.body(), messageId, authorId, bucket);
 
     return new MessageSentResponseDTO(
         MessageStatus.SENT, messageId, thread.getThreadId(), messageSendRequest.body());
+  }
+
+  /**
+   * Sends message to all users that are not excluded from the delivery and
+   * are part of the recipients list.
+   * For each user separate message is prepared and inserted into the kafka topic.
+   *
+   * @param threadId id of the thread for which fanout is activated.
+   * @param recipients ids of the recipients
+   * @param excludeUsersFromDelivery the users, who should not get the message (example: author of the message).
+   * @param messageBody content of the message.
+   * @param messageId snowflake of the message.
+   * @param authorId id of the author.
+   * @param bucket the time bucket index where the message was inserted.
+   */
+  private void fanoutMessages(UUID threadId, Set<UUID> recipients,
+      Set<UUID> excludeUsersFromDelivery,
+      String messageBody, long messageId, UUID authorId,
+      int bucket) {
+
+    for (UUID uid: recipients) {
+      if (excludeUsersFromDelivery.contains(uid)) continue;
+
+      final var messageRecord =
+          this.prepareMessageEvent(threadId, uid,
+              messageBody, messageId, authorId, bucket);
+
+      this.threadEventsTemplate.send(this.kafkaProps.getTopics().getThreadEvents(),
+          messageRecord.e1(), messageRecord.e2());
+    }
+  }
+
+  private Tuple<ThreadEventKey, ThreadMessageEvent> prepareMessageEvent(
+      UUID threadId, UUID recipientUid, String messageBody, long messageId,
+      UUID authorId, int bucket
+  ) {
+    final var key = ThreadEventKey.newBuilder()
+                        .setThreadId(threadId.toString())
+                        .setUid(recipientUid.toString())
+                        .build();
+
+    final var value = ThreadMessageEvent.newBuilder()
+                          .setMessageId(messageId)
+                          .setAuthorId(authorId.toString())
+                          .setBucket(bucket)
+                          .setBody(messageBody)
+                          .setToUser(recipientUid.toString())
+                          .setThreadId(threadId.toString())
+                          .build();
+
+    return new Tuple<>(key, value);
   }
 
   private ScrollContent<MessageDTO> mapScrollContentToDTO(
