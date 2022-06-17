@@ -5,6 +5,12 @@ management:
       exposure:
         include: "*"
 
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: 'https://dev-20836463.okta.com/oauth2/default'
 
 project:
   customEpochMilli: 1640995200000
@@ -42,3 +48,8 @@ logging:
     com:
       akmal:
         messengerspringbackend: TRACE
+    org:
+      springframework:
+        security: DEBUG
+        web:
+          socket: DEBUG
