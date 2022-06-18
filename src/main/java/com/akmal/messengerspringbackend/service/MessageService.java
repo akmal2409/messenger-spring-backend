@@ -239,10 +239,6 @@ public class MessageService {
     final var author =
         this.userService.findUserByUid(authorId);
 
-    if (!author.getUid().equals(authorId)) {
-      throw new UnauthorizedActionException("Passed user id does not belong to the current user");
-    }
-
     final Collection<MessageByUserByThread> messages = new LinkedList<>();
     final Collection<ThreadByUserByLastMessage> threads = new LinkedList<>();
     final Set<String> excludedFromDelivery = new HashSet<>(Collections.singletonList(authorId));

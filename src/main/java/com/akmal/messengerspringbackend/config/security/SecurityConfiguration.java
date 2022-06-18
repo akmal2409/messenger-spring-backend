@@ -1,5 +1,6 @@
 package com.akmal.messengerspringbackend.config.security;
 
+import com.akmal.messengerspringbackend.controller.v1.rest.MessageController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,7 @@ public class SecurityConfiguration {
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http.authorizeRequests(authorize -> authorize
+                                                   .antMatchers(MessageController.BASE_API).access("authentication.name == #userId")
                                                    .antMatchers("/ws/**").permitAll()
                                                    .anyRequest().authenticated())
         .oauth2ResourceServer(
