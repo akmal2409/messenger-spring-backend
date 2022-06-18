@@ -132,7 +132,7 @@ services:
       SNITCH: 'GossipingPropertyFileSnitch'
       DC: 'Moon'
       RACK: 'West'
-      JVM_EXTRA_OPTS: '-Xms256m -Xmx512g'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx512m'
     networks:
       cassandra-cluster:
         ipv4_address: 172.30.0.2
@@ -166,7 +166,7 @@ services:
       SNITCH: 'GossipingPropertyFileSnitch'
       DC: 'Moon'
       RACK: 'West'
-      JVM_EXTRA_OPTS: '-Xms256m -Xmx512g'
+      JVM_EXTRA_OPTS: '-Xms256m -Xmx512m'
     cap_add:
       - IPC_LOCK # Allow DSE to lock memory with mlock
     ulimits:
