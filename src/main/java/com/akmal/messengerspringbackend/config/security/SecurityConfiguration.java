@@ -2,8 +2,10 @@ package com.akmal.messengerspringbackend.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,13 +17,19 @@ import org.springframework.security.web.SecurityFilterChain;
  * @since 1.0
  */
 @Configuration
+@EnableWebSecurity
 public class SecurityConfiguration {
 
+  @Order(1)
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http.authorizeRequests(authorize -> authorize.anyRequest().authenticated())
+    return http.authorizeRequests(authorize -> authorize
+                                                   .antMatchers("/ws/**").permitAll()
+                                                   .anyRequest().authenticated())
         .oauth2ResourceServer(
             oauth2 -> oauth2.jwt().jwtAuthenticationConverter(jwtAuthenticationConverter()))
+               .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
+                   SessionCreationPolicy.STATELESS))
         .csrf()
         .disable()
         .cors()
@@ -29,7 +37,8 @@ public class SecurityConfiguration {
         .build();
   }
 
-  private JwtAuthenticationConverter jwtAuthenticationConverter() {
+  @Bean
+  JwtAuthenticationConverter jwtAuthenticationConverter() {
     final var converter = new JwtAuthenticationConverter();
     converter.setPrincipalClaimName("uid");
     return converter;
