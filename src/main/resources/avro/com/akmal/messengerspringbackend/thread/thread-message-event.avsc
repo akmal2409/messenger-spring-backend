@@ -32,6 +32,18 @@
       "doc": "Author UUID"
     },
     {
+      "name": "authorName",
+      "type": "string",
+      "doc": "Author's full name",
+      "default": ""
+    },
+    {
+      "name": "threadName",
+      "type": "string",
+      "doc": "Thread name (depends on which side of the chat the user is)",
+      "default": ""
+    },
+    {
       "name": "body",
       "type": "string",
       "doc": "Message body"

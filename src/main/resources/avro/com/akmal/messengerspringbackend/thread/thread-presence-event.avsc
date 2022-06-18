@@ -16,6 +16,18 @@
       "default": null
     },
     {
+      "name": "uid",
+      "type": "string",
+      "doc": "ID of the user with whom the event is associated",
+      "default": ""
+    },
+    {
+      "name": "userName",
+      "type": "string",
+      "doc": "The name of the user with whom the event is associated",
+      "default": ""
+    },
+    {
       "name": "systemMessage",
       "type": ["null", "string"],
       "doc": "Optional system message with the event",
