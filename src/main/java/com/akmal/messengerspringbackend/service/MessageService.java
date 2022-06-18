@@ -16,6 +16,7 @@ import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import com.akmal.messengerspringbackend.repository.MessageRepository;
 import com.akmal.messengerspringbackend.repository.ThreadRepository;
 import com.akmal.messengerspringbackend.repository.UserRepository;
+import com.akmal.messengerspringbackend.service.MessageDeliveryService.FanoutMessageMetadata;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
 import com.akmal.messengerspringbackend.shared.datastructure.Tuple;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
@@ -58,8 +59,7 @@ public class MessageService {
   private final ThreadRepository threadRepository;
   private final SnowflakeGenerator snowflakeGenerator;
   private final BucketingManager bucketingManager;
-  private final KafkaTemplate<SpecificRecordBase, SpecificRecordBase> threadEventsTemplate;
-  private final KafkaConfigurationProperties kafkaProps;
+  private final MessageDeliveryService messageDeliveryService;
 
   /**
    * The method fetched the collection of messages with size <= {@link MessageService#FETCH_SIZE}.
@@ -239,6 +239,9 @@ public class MessageService {
 
     final Collection<MessageByUserByThread> messages = new LinkedList<>();
     final Collection<ThreadByUserByLastMessage> threads = new LinkedList<>();
+    final Set<UUID> excludedFromDelivery = new HashSet<>(Collections.singletonList(authorId));
+    final Collection<FanoutMessageMetadata> fanoutMetadata = new LinkedList<>();
+
     final long messageId = this.snowflakeGenerator.nextId();
     final int bucket = this.bucketingManager.makeBucket(messageId);
 
@@ -263,68 +266,31 @@ public class MessageService {
               .key(new ThreadByUserByLastMessage.Key(participant.getUid(), thread.getThreadId()))
               .time(LocalDateTime.now())
               .build());
+
+      if (!excludedFromDelivery.contains(participant.getUid())) {
+        fanoutMetadata.add(
+            FanoutMessageMetadata.builder()
+                .authorName(currentUser.getFullName())
+                .authorId(authorId)
+                .body(messageSendRequest.body())
+                .recipientId(participant.getUid())
+                .bucket(bucket)
+                .messageId(messageId)
+                .threadId(threadId)
+                .threadName(threadNameAndThumbnail[0])
+                .build());
+      }
     }
 
+    //noinspection ResultOfMethodCallIgnored
     this.messageRepository.saveMessageForAllThreadMembers(messages, threads);
-    this.fanoutMessages(thread.getThreadId(),
-        thread.getMembers().stream().map(UserUDT::getUid).collect(Collectors.toSet()),
-        new HashSet<>(Collections.singletonList(authorId)),
-        messageSendRequest.body(), messageId, authorId, bucket);
+    this.messageDeliveryService.fanoutMessages(fanoutMetadata); // async execution
 
     return new MessageSentResponseDTO(
         MessageStatus.SENT, messageId, thread.getThreadId(), messageSendRequest.body());
   }
 
-  /**
-   * Sends message to all users that are not excluded from the delivery and
-   * are part of the recipients list.
-   * For each user separate message is prepared and inserted into the kafka topic.
-   *
-   * @param threadId id of the thread for which fanout is activated.
-   * @param recipients ids of the recipients
-   * @param excludeUsersFromDelivery the users, who should not get the message (example: author of the message).
-   * @param messageBody content of the message.
-   * @param messageId snowflake of the message.
-   * @param authorId id of the author.
-   * @param bucket the time bucket index where the message was inserted.
-   */
-  private void fanoutMessages(UUID threadId, Set<UUID> recipients,
-      Set<UUID> excludeUsersFromDelivery,
-      String messageBody, long messageId, UUID authorId,
-      int bucket) {
 
-    for (UUID uid: recipients) {
-      if (excludeUsersFromDelivery.contains(uid)) continue;
-
-      final var messageRecord =
-          this.prepareMessageEvent(threadId, uid,
-              messageBody, messageId, authorId, bucket);
-
-      this.threadEventsTemplate.send(this.kafkaProps.getTopics().getThreadEvents(),
-          messageRecord.e1(), messageRecord.e2());
-    }
-  }
-
-  private Tuple<SpecificRecordBase, SpecificRecordBase> prepareMessageEvent(
-      UUID threadId, UUID recipientUid, String messageBody, long messageId,
-      UUID authorId, int bucket
-  ) {
-    final var key = ThreadEventKey.newBuilder()
-                        .setThreadId(threadId.toString())
-                        .setUid(recipientUid.toString())
-                        .build();
-
-    final var value = ThreadMessageEvent.newBuilder()
-                          .setMessageId(messageId)
-                          .setAuthorId(authorId.toString())
-                          .setBucket(bucket)
-                          .setBody(messageBody)
-                          .setToUser(recipientUid.toString())
-                          .setThreadId(threadId.toString())
-                          .build();
-
-    return new Tuple<>(key, value);
-  }
 
   private ScrollContent<MessageDTO> mapScrollContentToDTO(
       ScrollContent<MessageByUserByThread> scrollContent) {
