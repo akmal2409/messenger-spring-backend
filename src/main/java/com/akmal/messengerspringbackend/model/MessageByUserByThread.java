@@ -32,7 +32,7 @@ public class MessageByUserByThread {
   @PrimaryKeyClass
   public static class Key implements Serializable {
     @PrimaryKeyColumn(value = "uid", type = PrimaryKeyType.PARTITIONED)
-    private final UUID uid;
+    private final String uid;
     @PrimaryKeyColumn(value = "thread_id", type = PrimaryKeyType.PARTITIONED)
     private final UUID threadId;
     @PrimaryKeyColumn(value = "bucket", type = PrimaryKeyType.PARTITIONED)
@@ -44,7 +44,7 @@ public class MessageByUserByThread {
   @PrimaryKey
   private final Key key;
   @Column("author_id")
-  private final UUID authorId;
+  private final String authorId;
   @Column("body")
   private final String body;
   @Column("is_read")
@@ -59,7 +59,7 @@ public class MessageByUserByThread {
         this.key.messageId,
         this.key.threadId.toString(),
         this.key.bucket,
-        this.authorId.toString(),
+        this.authorId,
         this.body,
         this.read,
         this.edited,

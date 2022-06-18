@@ -42,7 +42,7 @@ public class MessageRepositoryImpl implements MessageRepository {
 
   @Override
   public ScrollContent<MessageByUserByThread> findAllByUidAndThreadIdAndBucket(
-      @NotNull UUID uid,
+      @NotNull String uid,
       @NotNull UUID threadId,
       int bucket,
       int size,
@@ -76,7 +76,7 @@ public class MessageRepositoryImpl implements MessageRepository {
 
   @Override
   public ScrollContent<MessageByUserByThread> findAllBeforeMessageId(
-      @NotNull UUID uid, @NotNull UUID threadId, int bucket, int size, long messageId) {
+      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, long messageId) {
     final var statement =
         SimpleStatement.newInstance(
                 "SELECT * FROM messages_by_user_by_thread WHERE uid = ? AND thread_id = ? AND bucket = ? "

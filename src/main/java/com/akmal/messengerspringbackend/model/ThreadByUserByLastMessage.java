@@ -36,7 +36,7 @@ public class ThreadByUserByLastMessage {
   @PrimaryKeyClass
   public static class Key {
     @PrimaryKeyColumn(value = "uid", type = PrimaryKeyType.PARTITIONED, ordinal = 0)
-    private final UUID uid;
+    private final String uid;
     @PrimaryKeyColumn(value = "thread_id", type = PrimaryKeyType.CLUSTERED, ordinal = 1)
     private final UUID threadId;
   }
@@ -96,8 +96,8 @@ public class ThreadByUserByLastMessage {
     final var inverseParticipant =
         thread.getMembers().stream().filter(p -> !author.getUid().equals(p.getUid())).findFirst();
 
-    if (!inverseParticipant.isPresent()) {
-      // corrupted chat fix, remove thread and throw exception
+    if (inverseParticipant.isEmpty()) {
+      // TODO: corrupted chat fix, remove thread and throw exception
       throw new CorruptedThreadException("Thread is corrupted, not enough of participants");
     }
 

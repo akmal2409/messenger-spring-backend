@@ -7,6 +7,7 @@ import com.akmal.messengerspringbackend.dto.v1.MessageSentResponseDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageStatus;
 import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.exception.EntityNotFoundException;
+import com.akmal.messengerspringbackend.exception.UnauthorizedActionException;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread.Key;
 import com.akmal.messengerspringbackend.model.Thread;
@@ -61,17 +62,19 @@ public class MessageService {
   private final BucketingManager bucketingManager;
   private final MessageDeliveryService messageDeliveryService;
 
+  private final UserService userService;
+
   /**
    * The method fetched the collection of messages with size <= {@link MessageService#FETCH_SIZE}.
    * The method resolves the data access path based on the following strategy:
    *
    * <ul>
    *   <li>If beforeMessageId is provided and the bucket is valid, then we use the {@link
-   *       MessageRepository#findAllBeforeMessageId(UUID, UUID, int, int, long)} contract to find
+   *       MessageRepository#findAllBeforeMessageId(String, UUID, int, int, long)} contract to find
    *       all messages in a bucket with message id strictly smaller than the provided one.
    *   <li>If only bucket is provided and optionally the pagingState (scroll state - a series of
    *       bytes, that helps the DSE driver to find the particular offset it stopped reading at
-   *       before), then we use {@link MessageRepository#findAllByUidAndThreadIdAndBucket(UUID,
+   *       before), then we use {@link MessageRepository#findAllByUidAndThreadIdAndBucket(String,
    *       UUID, int, int, String)} contract to find all messages limited by the {@link
    *       MessageService#FETCH_SIZE} in the database based on the user id, thread id and a bucket
    *       (+ optional pagingState).
@@ -83,7 +86,7 @@ public class MessageService {
    * However, some buckets might not have enough of data to satisfy the size == {@link
    * MessageService#FETCH_SIZE} due to the small amount of data in the time bucket or simply paging
    * state was applied that was just at the end of the time bucket. Therefore, following resolution
-   * algorithm has been developed, see {@link MessageService#aggregateStartingFromBucket(UUID, UUID,
+   * algorithm has been developed, see {@link MessageService#aggregateStartingFromBucket(String, UUID,
    * Integer, ScrollContent)} because current method uses that resolution.
    *
    * <p>On the other hand, there are also several conditions for the above-mentioned algorithm not
@@ -101,7 +104,7 @@ public class MessageService {
       pure = true,
       value = "null,null,_,_,_ -> fail; null,_,_,_,_ -> fail; _,null,_,_,_ -> fail")
   public ScrollContent<MessageDTO> findAllByUserAndThreadAndBucket(
-      @NotNull UUID uid,
+      @NotNull String uid,
       @NotNull UUID threadId,
       @Nullable Integer bucket,
       @Nullable Long beforeMessageId,
@@ -133,7 +136,7 @@ public class MessageService {
   }
 
   private ScrollContent<MessageByUserByThread> findAllBeforeMessageId(
-      @NotNull UUID uid,
+      @NotNull String uid,
       @NotNull UUID threadId,
       @NotNull Integer bucket,
       @NotNull Long fromMessageId) {
@@ -143,7 +146,7 @@ public class MessageService {
   }
 
   private ScrollContent<MessageByUserByThread> findAllInBucket(
-      @NotNull UUID uid,
+      @NotNull String uid,
       @NotNull UUID threadId,
       @NotNull Integer bucket,
       @Nullable String pagingState) {
@@ -181,7 +184,7 @@ public class MessageService {
    * @return
    */
   private ScrollContent<MessageByUserByThread> aggregateStartingFromBucket(
-      @NotNull UUID uid,
+      @NotNull String uid,
       @NotNull UUID threadId,
       @NotNull Integer bucket,
       ScrollContent<MessageByUserByThread> messages) {
@@ -227,19 +230,22 @@ public class MessageService {
    * @return {@link MessageSentResponseDTO} that contains body and status of the message.
    */
   public MessageSentResponseDTO sendMessage(
-      UUID threadId, UUID authorId, MessageSendRequestDTO messageSendRequest) {
+      UUID threadId, String authorId, MessageSendRequestDTO messageSendRequest) {
     final var thread =
         this.threadRepository
             .findByThreadId(threadId)
             .orElseThrow(() -> new EntityNotFoundException("Thread was not found"));
-    final var currentUser =
-        this.userRepository
-            .findByUid(UUID.fromString("fef0d7a7-8af6-46d1-bbcd-94f6483d3645")) // temporary
-            .orElseThrow(() -> new EntityNotFoundException("Current user was not found"));
+
+    final var author =
+        this.userService.findUserByUid(authorId);
+
+    if (!author.getUid().equals(authorId)) {
+      throw new UnauthorizedActionException("Passed user id does not belong to the current user");
+    }
 
     final Collection<MessageByUserByThread> messages = new LinkedList<>();
     final Collection<ThreadByUserByLastMessage> threads = new LinkedList<>();
-    final Set<UUID> excludedFromDelivery = new HashSet<>(Collections.singletonList(authorId));
+    final Set<String> excludedFromDelivery = new HashSet<>(Collections.singletonList(authorId));
     final Collection<FanoutMessageMetadata> fanoutMetadata = new LinkedList<>();
 
     final long messageId = this.snowflakeGenerator.nextId();
@@ -247,11 +253,11 @@ public class MessageService {
 
     for (UserUDT participant : thread.getMembers()) {
       final String[] threadNameAndThumbnail =
-          ThreadByUserByLastMessage.getThreadNameAndThumbnail(thread, currentUser, participant);
+          ThreadByUserByLastMessage.getThreadNameAndThumbnail(thread, author, participant);
 
       messages.add(
           MessageByUserByThread.builder()
-              .authorId(currentUser.getUid())
+              .authorId(author.getUid())
               .body(messageSendRequest.body())
               .key(new Key(participant.getUid(), thread.getThreadId(), bucket, messageId))
               .build());
@@ -259,7 +265,7 @@ public class MessageService {
       threads.add(
           ThreadByUserByLastMessage.builder()
               .messageId(messageId)
-              .author(currentUser.toUDT())
+              .author(author.toUDT())
               .threadName(threadNameAndThumbnail[0])
               .threadPictureThumbnailUrl(threadNameAndThumbnail[1])
               .message(messageSendRequest.body())
@@ -270,7 +276,7 @@ public class MessageService {
       if (!excludedFromDelivery.contains(participant.getUid())) {
         fanoutMetadata.add(
             FanoutMessageMetadata.builder()
-                .authorName(currentUser.getFullName())
+                .authorName(author.getFullName())
                 .authorId(authorId)
                 .body(messageSendRequest.body())
                 .recipientId(participant.getUid())

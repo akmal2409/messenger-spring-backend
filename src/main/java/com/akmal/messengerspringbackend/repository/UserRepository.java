@@ -13,5 +13,7 @@ import java.util.UUID;
  */
 public interface UserRepository {
 
-  Optional<User> findByUid(UUID uid);
+  Optional<User> findByUid(String uid);
+
+  User save(User user);
 }

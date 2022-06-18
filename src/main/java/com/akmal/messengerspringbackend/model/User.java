@@ -1,6 +1,7 @@
 package com.akmal.messengerspringbackend.model;
 
 import com.akmal.messengerspringbackend.model.udt.UserUDT;
+import com.akmal.messengerspringbackend.shared.idp.IdpUserMetadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.Optional;
@@ -27,7 +28,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Table("users")
 public class User {
   @PrimaryKey("uid")
-  private final UUID uid;
+  private final String uid;
   @Column("first_name")
   private final String firstName;
   @Column("last_name")
@@ -44,7 +45,7 @@ public class User {
   private final String profileImageUrl;
 
 
-  public User(UUID uid, String firstName, String lastName, String email,
+  public User(String uid, String firstName, String lastName, String email,
       Set<UserUDT> contacts, Set<UUID> threadIds, String profileThumbnailUrl, String profileImageUrl) {
     this.uid = uid;
     this.firstName = firstName;
@@ -70,5 +71,14 @@ public class User {
                .profileImageUrl(this.profileImageUrl)
                .build();
 
+  }
+
+  public static User fromIdpMetadata(IdpUserMetadata idpUserMetadata) {
+    return User.builder()
+               .uid(idpUserMetadata.uid())
+               .firstName(idpUserMetadata.firstName())
+               .lastName(idpUserMetadata.lastName())
+               .email(idpUserMetadata.email())
+               .build();
   }
 }

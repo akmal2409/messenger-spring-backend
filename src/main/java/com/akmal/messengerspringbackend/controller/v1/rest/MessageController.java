@@ -7,6 +7,8 @@ import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.service.MessageService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,17 +31,19 @@ public class MessageController {
   public static final String BASE_API = "/api/v1/users/{userId}/threads/{threadId}/messages";
   private final MessageService messageService;
 
+
   @PostMapping
   public MessageSentResponseDTO sendMessage(
-      @PathVariable UUID userId,
+      @PathVariable String userId,
       @PathVariable UUID threadId,
       @RequestBody MessageSendRequestDTO messageRequest) {
     return this.messageService.sendMessage(threadId, userId, messageRequest);
   }
 
+
   @GetMapping
   public ScrollContent<MessageDTO> getMessagesByUserByThreadByBucket(
-      @PathVariable UUID userId,
+      @PathVariable String userId,
       @PathVariable UUID threadId,
       @RequestParam(required = false) Integer bucket,
       @RequestParam(required = false) String pagingState,

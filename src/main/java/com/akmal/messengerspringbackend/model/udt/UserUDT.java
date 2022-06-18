@@ -20,7 +20,7 @@ import org.springframework.data.cassandra.core.mapping.UserDefinedType;
 @With
 public class UserUDT {
   @Column("uid")
-  private final UUID uid;
+  private final String uid;
   @Column("first_name")
   private final String firstName;
   @Column("last_name")

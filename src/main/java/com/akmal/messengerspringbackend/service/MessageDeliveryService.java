@@ -33,9 +33,9 @@ public class MessageDeliveryService {
   static record FanoutMessageMetadata(
       @NotNull UUID threadId,
       @Nullable String threadName,
-      @NotNull UUID recipientId,
+      @NotNull String recipientId,
       long messageId,
-      @NotNull UUID authorId,
+      @NotNull String authorId,
       @Nullable String authorName,
       int bucket,
       @Nullable String body,
@@ -75,17 +75,17 @@ public class MessageDeliveryService {
   ) {
     final var key = ThreadEventKey.newBuilder()
                         .setThreadId(metadata.threadId.toString())
-                        .setUid(metadata.recipientId.toString())
+                        .setUid(metadata.recipientId)
                         .build();
 
     final var value = ThreadMessageEvent.newBuilder()
                           .setMessageId(metadata.messageId)
-                          .setAuthorId(metadata.authorId.toString())
+                          .setAuthorId(metadata.authorId)
                           .setBucket(metadata.bucket)
                           .setBody(metadata.body)
                           .setAuthorName(metadata.authorName)
                           .setThreadName(metadata.threadName)
-                          .setToUser(metadata.recipientId.toString())
+                          .setToUser(metadata.recipientId)
                           .setThreadId(metadata.threadId.toString())
                           .build();
 

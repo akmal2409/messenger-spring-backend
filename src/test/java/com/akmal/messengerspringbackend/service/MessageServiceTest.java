@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MessageServiceTest {
   private static final int FETCH_SIZE = 25;
-  private static final UUID USER_ID = UUID.fromString("fef0d7a7-8af6-46d1-bbcd-94f6483d3645");
+  private static final String USER_ID = "fef0d7a7-8af6-46d1-bbcd-94f6483d3645";
   private static final UUID THREAD_ID = Uuids.startOf(1640995200000L);
 
   @Mock private MessageRepository messageRepository;
@@ -65,7 +65,7 @@ class MessageServiceTest {
 
     // when
     when(this.messageRepository.findAllBeforeMessageId(
-            any(UUID.class), any(UUID.class), anyInt(), anyInt(), anyLong()))
+            any(String.class), any(UUID.class), anyInt(), anyInt(), anyLong()))
         .thenReturn(expectedMessages);
 
     // then
@@ -112,7 +112,7 @@ class MessageServiceTest {
 
     assertThat(bucketCaptor.getValue()).isEqualTo(generatedBucket);
 
-    assertThat(pagingStateCaptor.getValue()).isEqualTo(null);
+    assertThat(pagingStateCaptor.getValue()).isNull();
 
     verify(this.bucketingManager, times(1)).makeBucket();
     verify(this.messageRepository, times(1))
@@ -189,7 +189,7 @@ class MessageServiceTest {
   void sendMessage() {}
 
   private ScrollContent<MessageByUserByThread> generateMessages(
-      int numberOfMessages, long messageIdStart, int bucket, UUID uid, UUID threadId) {
+      int numberOfMessages, long messageIdStart, int bucket, String uid, UUID threadId) {
     List<MessageByUserByThread> messages = new LinkedList<>();
 
     for (int i = 0; i < numberOfMessages; i++) {

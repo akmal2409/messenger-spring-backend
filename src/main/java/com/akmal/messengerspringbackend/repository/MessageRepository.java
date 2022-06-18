@@ -34,10 +34,10 @@ public interface MessageRepository {
    * @return
    */
   ScrollContent<MessageByUserByThread> findAllByUidAndThreadIdAndBucket(
-      @NotNull UUID uid, @NotNull UUID threadId, int bucket, int size, @Nullable String pagingState);
+      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, @Nullable String pagingState);
 
   ScrollContent<MessageByUserByThread> findAllBeforeMessageId(
-      @NotNull UUID uid, @NotNull UUID threadId, int bucket, int size, long messageId
+      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, long messageId
   );
 
   /**

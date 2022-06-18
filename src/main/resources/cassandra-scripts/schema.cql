@@ -3,7 +3,7 @@
 USE messenger;
 
 CREATE TYPE IF NOT EXISTS user (
-    uid UUID,
+    uid TEXT,
     first_name TEXT,
     last_name TEXT,
     profile_image_url TEXT,
@@ -12,7 +12,7 @@ CREATE TYPE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS users
 (
-    uid UUID,
+    uid TEXT,
     email TEXT,
     first_name TEXT,
     last_name TEXT,
@@ -25,11 +25,11 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS messages_by_user_by_thread
 (
-  uid UUID,
+  uid TEXT,
   thread_id TIMEUUID,
   bucket int,
   message_id BIGINT,
-  author_id UUID,
+  author_id TEXT,
   body TEXT,
   is_read BOOLEAN,
   is_edited BOOLEAN,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS threads
 
 CREATE TABLE IF NOT EXISTS threads_by_user_by_last_message
 (
-    uid UUID,
+    uid TEXT,
     thread_id TIMEUUID,
     message_id BIGINT,
     time timestamp,
