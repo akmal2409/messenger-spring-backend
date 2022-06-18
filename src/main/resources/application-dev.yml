@@ -42,6 +42,11 @@ project:
       init: true
       scripts: 'cassandra-scripts/data.cql'
     driver-config: 'classpath:application.conf'
+  idp:
+    okta:
+      orgUrl: 'https://dev-20836463.okta.com'
+      apiKey: ${OKTA_API_KEY}
+
 
 logging:
   level:
@@ -52,4 +57,4 @@ logging:
       springframework:
         security: DEBUG
         web:
-          socket: DEBUG
+          socket: TRACE

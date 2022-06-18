@@ -23,6 +23,7 @@
     <io.confluent.schema-registry.version>7.1.1</io.confluent.schema-registry.version>
     <avro.schemas.folder>src/main/resources/avro/com/akmal/messengerspringbackend</avro.schemas.folder>
     <avro.version>1.11.0</avro.version>
+    <okta.sdk.version>8.2.1</okta.sdk.version>
   </properties>
 
   <dependencies>
@@ -106,6 +107,28 @@
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-jose</artifactId>
     </dependency>
+
+    <!-- Okta   -->
+    <dependency>
+      <groupId>com.okta.sdk</groupId>
+      <artifactId>okta-sdk-api</artifactId>
+      <version>${okta.sdk.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.okta.sdk</groupId>
+      <artifactId>okta-sdk-impl</artifactId>
+      <version>${okta.sdk.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.okta.sdk</groupId>
+      <artifactId>okta-sdk-httpclient</artifactId>
+      <version>${okta.sdk.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
     <!-- Kafka and Avro -->
 
     <dependency>
