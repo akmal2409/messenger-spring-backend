@@ -1,6 +1,9 @@
 package com.akmal.messengerspringbackend.config.websocket;
 
 import com.akmal.messengerspringbackend.websocket.BearerHandshakeInterceptor;
+import com.akmal.messengerspringbackend.websocket.IpHandshakeInterceptor;
+import com.akmal.messengerspringbackend.websocket.SessionManagementInterceptor;
+import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -28,6 +31,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
   private final JwtDecoder jwtDecoder;
   private final JwtAuthenticationConverter authenticationConverter;
   private static final String BEARER_PREFIX = "Bearer ";
+  private final WebsocketSessionStorage sessionStorage;
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -41,6 +45,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws")
         .setAllowedOriginPatterns("*")
+        .addInterceptors(new IpHandshakeInterceptor())
         .withSockJS();
   }
 
@@ -49,7 +54,9 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     final var bearerInterceptor = BearerHandshakeInterceptor
                                       .customInstance(jwtDecoder, authenticationConverter,
                                           BEARER_PREFIX);
+    final var sessionInterceptor = SessionManagementInterceptor
+                                       .withStore(this.sessionStorage);
 
-    registration.interceptors(bearerInterceptor);
+    registration.interceptors(bearerInterceptor, sessionInterceptor);
   }
 }
