@@ -28,6 +28,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
 @RequiredArgsConstructor
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+  public static final String NOTIFICATION_TOPIC = "/user/queue/notifications";
+  public static final String ERROR_TOPIC = "/user/queue/errors";
+  public static final String THREAD_TOPIC = "/user/queue/threads"; // + threadId TODO: secure threads by checking subscriber
+
   private final JwtDecoder jwtDecoder;
   private final JwtAuthenticationConverter authenticationConverter;
   private static final String BEARER_PREFIX = "Bearer ";
