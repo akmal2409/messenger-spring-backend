@@ -1,7 +1,5 @@
 package com.akmal.messengerspringbackend.dto.v1;
 
-import java.util.UUID;
-
 /**
  * @author Akmal Alikhujaev
  * @version 1.0
