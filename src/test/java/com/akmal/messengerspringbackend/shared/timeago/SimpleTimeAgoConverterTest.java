@@ -1,6 +1,7 @@
 package com.akmal.messengerspringbackend.shared.timeago;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,7 +25,7 @@ class SimpleTimeAgoConverterTest {
 
   @BeforeEach
   void setup() {
-    this.simpleTimeAgoConverter = SimpleTimeAgoConverter.withDateFormatter(this.formatter);
+    this.simpleTimeAgoConverter = TimeAgoConverter.withDateFormatter(this.formatter);
   }
 
   @Test
@@ -32,13 +33,13 @@ class SimpleTimeAgoConverterTest {
   void testInputTimeNull() {
     assertThatThrownBy(() -> {
       this.simpleTimeAgoConverter.convert(null);
-    }).isInstanceOf(NullPointerException.class);
+    }).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("Should fail when input time is in the future")
   void testInputTimeInTheFuture() {
-    final var time = Instant.now().plusMillis(1);
+    final var time = Instant.now().plusMillis(10);
 
     assertThatThrownBy(() -> {
       this.simpleTimeAgoConverter.convert(time);

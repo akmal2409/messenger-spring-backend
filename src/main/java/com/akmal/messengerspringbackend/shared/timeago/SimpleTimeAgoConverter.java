@@ -17,40 +17,18 @@ import org.jetbrains.annotations.NotNull;
  * @project messenger-spring-backend
  * @since 1.0
  */
-public class SimpleTimeAgoConverter implements TimeAgoConverter {
+class SimpleTimeAgoConverter implements TimeAgoConverter {
   private static final String DATE_FORMAT_PATTERN = "dd/MM/yyyy";
 
   private final DateTimeFormatter formatter;
 
 
-  private SimpleTimeAgoConverter() {
+  SimpleTimeAgoConverter() {
     this.formatter = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
   }
 
-  private SimpleTimeAgoConverter(DateTimeFormatter formatter) {
-    this.formatter = Objects.requireNonNull(formatter, "Formatter was null");;
-  }
-
-  /**
-   * Returns an instance of a {@link TimeAgoConverter} with a custom {@link DateTimeFormatter}.
-   * Formatter is being used when the time is larger than a week, in that case the converter
-   * spits out the full date with accordance to the format specified in {@link DateTimeFormatter}.
-   *
-   * @param formatter non null
-   * @return {@link TimeAgoConverter} instance with a custom formatter.
-   */
-  public static TimeAgoConverter withDateFormatter(@NotNull DateTimeFormatter formatter) {
-    return new SimpleTimeAgoConverter(formatter);
-  }
-
-  /**
-   * Returns an instance of a {@link TimeAgoConverter} with a default {@link DateTimeFormatter} of a
-   * following pattern 'dd/MM/yyyy'. The converter is invoked if the time passed is larger than 1 week.
-   *
-   * @return {@link TimeAgoConverter} instance with a default formatter.
-   */
-  public static SimpleTimeAgoConverter withDefaults() {
-    return new SimpleTimeAgoConverter();
+  SimpleTimeAgoConverter(@NotNull DateTimeFormatter formatter) {
+    this.formatter = formatter;
   }
 
   /**
@@ -76,7 +54,6 @@ public class SimpleTimeAgoConverter implements TimeAgoConverter {
   @Contract(pure = true)
   @Override
   public String convert(@NotNull Instant time) {
-    Objects.requireNonNull(time, "Time was null");
     final var currentTime = Instant.now();
 
     if (currentTime.isBefore(time)) {
