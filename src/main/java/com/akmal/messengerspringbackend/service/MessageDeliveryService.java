@@ -8,7 +8,6 @@ import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import com.akmal.messengerspringbackend.websocket.dto.MessageEventDto;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import java.util.Collection;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -76,8 +75,6 @@ public class MessageDeliveryService {
       } else {
         destination = WebSocketConfiguration.NOTIFICATION_TOPIC.replace("/user", "");
       }
-
-      log.info("Sending message {} to destination {}", messageEvent, destination);
 
       this.wsMessagingTemplate.convertAndSendToUser(
           userId, destination, MessageEventDto.fromThreadMessageEvent(messageEvent));
