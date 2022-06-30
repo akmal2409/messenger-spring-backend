@@ -17,5 +17,9 @@ public interface ThreadRepository {
 
   Optional<Thread> findByThreadId(UUID threadId);
 
-  List<ThreadByUserByLastMessage> findThreadByLastMessageByUser(UUID uid);
+  List<ThreadByUserByLastMessage> findThreadByLastMessageByUser(String uid);
+
+  Thread save(Thread thread);
+
+  List<ThreadByUserByLastMessage> saveAllThreadByUserByLastMessage(List<ThreadByUserByLastMessage> threads);
 }
