@@ -1,13 +1,11 @@
 package com.akmal.messengerspringbackend.service;
 
-import com.akmal.messengerspringbackend.config.kafka.KafkaConfigurationProperties;
 import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSendRequestDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSentResponseDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageStatus;
 import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.exception.EntityNotFoundException;
-import com.akmal.messengerspringbackend.exception.UnauthorizedActionException;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread.Key;
 import com.akmal.messengerspringbackend.model.Thread;
@@ -19,10 +17,7 @@ import com.akmal.messengerspringbackend.repository.ThreadRepository;
 import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.service.MessageDeliveryService.FanoutMessageMetadata;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
-import com.akmal.messengerspringbackend.shared.datastructure.Tuple;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
-import com.akmal.messengerspringbackend.thread.ThreadEventKey;
-import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -32,15 +27,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -86,8 +77,8 @@ public class MessageService {
    * However, some buckets might not have enough of data to satisfy the size == {@link
    * MessageService#FETCH_SIZE} due to the small amount of data in the time bucket or simply paging
    * state was applied that was just at the end of the time bucket. Therefore, following resolution
-   * algorithm has been developed, see {@link MessageService#aggregateStartingFromBucket(String, UUID,
-   * Integer, ScrollContent)} because current method uses that resolution.
+   * algorithm has been developed, see {@link MessageService#aggregateStartingFromBucket(String,
+   * UUID, Integer, ScrollContent)} because current method uses that resolution.
    *
    * <p>On the other hand, there are also several conditions for the above-mentioned algorithm not
    * to start execution such as: size has been satisfied or the next bucket (currentBucket - 1) is
@@ -236,8 +227,7 @@ public class MessageService {
             .findByThreadId(threadId)
             .orElseThrow(() -> new EntityNotFoundException("Thread was not found"));
 
-    final var author =
-        this.userService.findUserByUid(authorId);
+    final var author = this.userService.findUserByUid(authorId);
 
     final Collection<MessageByUserByThread> messages = new LinkedList<>();
     final Collection<ThreadByUserByLastMessage> threads = new LinkedList<>();
@@ -291,8 +281,6 @@ public class MessageService {
     return new MessageSentResponseDTO(
         MessageStatus.SENT, messageId, thread.getThreadId(), messageSendRequest.body());
   }
-
-
 
   private ScrollContent<MessageDTO> mapScrollContentToDTO(
       ScrollContent<MessageByUserByThread> scrollContent) {

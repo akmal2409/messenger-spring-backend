@@ -27,22 +27,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Data
 public class MessageByUserByThread {
 
-  @With
-  @Data
-  @PrimaryKeyClass
-  public static class Key implements Serializable {
-    @PrimaryKeyColumn(value = "uid", type = PrimaryKeyType.PARTITIONED)
-    private final String uid;
-    @PrimaryKeyColumn(value = "thread_id", type = PrimaryKeyType.PARTITIONED)
-    private final UUID threadId;
-    @PrimaryKeyColumn(value = "bucket", type = PrimaryKeyType.PARTITIONED)
-    private final int bucket;
-    @PrimaryKeyColumn(value = "message_id", type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
-    private final long messageId;
-  }
-
-  @PrimaryKey
-  private final Key key;
+  @PrimaryKey private final Key key;
   @Column("author_id")
   private final String authorId;
   @Column("body")
@@ -63,7 +48,26 @@ public class MessageByUserByThread {
         this.body,
         this.read,
         this.edited,
-        this.isSystemMessage()
-    );
+        this.isSystemMessage());
+  }
+
+  @With
+  @Data
+  @PrimaryKeyClass
+  public static class Key implements Serializable {
+    @PrimaryKeyColumn(value = "uid", type = PrimaryKeyType.PARTITIONED)
+    private final String uid;
+
+    @PrimaryKeyColumn(value = "thread_id", type = PrimaryKeyType.PARTITIONED)
+    private final UUID threadId;
+
+    @PrimaryKeyColumn(value = "bucket", type = PrimaryKeyType.PARTITIONED)
+    private final int bucket;
+
+    @PrimaryKeyColumn(
+        value = "message_id",
+        type = PrimaryKeyType.CLUSTERED,
+        ordering = Ordering.DESCENDING)
+    private final long messageId;
   }
 }

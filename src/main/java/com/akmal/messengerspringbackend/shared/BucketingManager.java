@@ -24,33 +24,29 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BucketingManager {
 
-  /**
-   * Specifies in milliseconds how big the bucket should be
-   */
-  @Setter private long bucketSize;
   private final SnowflakeGenerator snowflakeGenerator;
   private final ProjectConfigurationProperties projectProps;
+  /** Specifies in milliseconds how big the bucket should be */
+  @Setter private long bucketSize;
 
   /**
-   * Creates the bucket based on the current timestamp.
-   * The calculation is following: timestamp/bucketSize, where both variables
-   * are in milliseconds.
+   * Creates the bucket based on the current timestamp. The calculation is following:
+   * timestamp/bucketSize, where both variables are in milliseconds.
    *
    * @return bucket number.
    */
   public int makeBucket() {
-    long msSinceEpoch = Instant.now()
-                            .minusMillis(this.projectProps.getCustomEpochMilli())
-                            .toEpochMilli();
+    long msSinceEpoch =
+        Instant.now().minusMillis(this.projectProps.getCustomEpochMilli()).toEpochMilli();
 
     return (int) (msSinceEpoch / bucketSize);
   }
 
   /**
-   * Computes the bucket based on the snowflake (which contains timestamp).
-   * Firstly, the timestamp is extracted from the snowflake (41 bits) which is already
-   * adjusted to the project specified epoch. Thereafter, we apply the following calculation:
-   * bucket = timestamp / bucketSize where both timestamp and bucket size are ms from an epoch.
+   * Computes the bucket based on the snowflake (which contains timestamp). Firstly, the timestamp
+   * is extracted from the snowflake (41 bits) which is already adjusted to the project specified
+   * epoch. Thereafter, we apply the following calculation: bucket = timestamp / bucketSize where
+   * both timestamp and bucket size are ms from an epoch.
    *
    * @param snowflake - 64bit id that contains timestamp.
    * @return bucket number.
@@ -69,10 +65,10 @@ public class BucketingManager {
   }
 
   /**
-   * Produces a list of buckets between given two snowflakes.
-   * For example, suppose we want to get all buckets between the messageId (snowflake)
-   * and threadId (which is again snowflake and contains creation time of the thread). Then the function
-   * will generate all buckets including the start and end.
+   * Produces a list of buckets between given two snowflakes. For example, suppose we want to get
+   * all buckets between the messageId (snowflake) and threadId (which is again snowflake and
+   * contains creation time of the thread). Then the function will generate all buckets including
+   * the start and end.
    *
    * @param startSnowflake - 64 bit snowflake that contains a timestamp
    * @param endSnowflake - 64 bit snowflake that contains a timestamp
@@ -80,11 +76,11 @@ public class BucketingManager {
    */
   public List<Integer> makeBuckets(long startSnowflake, long endSnowflake) {
     return IntStream.range(this.makeBucket(startSnowflake), this.makeBucket(endSnowflake) + 1)
-               .boxed().toList();
+        .boxed()
+        .toList();
   }
 
   public List<Integer> makeBucketsFromTimestampTillBucket(long timestamp, int bucket) {
-    return IntStream.range(this.makeBucketForTimestamp(timestamp),
-        bucket + 1).boxed().toList();
+    return IntStream.range(this.makeBucketForTimestamp(timestamp), bucket + 1).boxed().toList();
   }
 }

@@ -1,7 +1,6 @@
 package com.akmal.messengerspringbackend.websocket.dto;
 
 import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
-import java.util.UUID;
 
 /**
  * @author Akmal Alikhujaev

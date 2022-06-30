@@ -27,13 +27,13 @@ public class WebsocketSessionStorageImpl implements WebsocketSessionStorage {
   @Override
   public boolean addSubscription(String uid, TopicSubscription sub) {
     if (!this.isUserConnected(uid)) return false;
-
+    log.info("Adding subscription for user {} sub: {}", uid, sub);
     this.unsubscribe(uid, sub.topic());
 
-    final var session = this.sessions.get(uid)
-                            .toBuilder()
-                            .subscriptions(new HashSet<>(this.sessions.get(uid).subscriptions()))
-                            .build();
+    final var session =
+        this.sessions.get(uid).toBuilder()
+            .subscriptions(new HashSet<>(this.sessions.get(uid).subscriptions()))
+            .build();
 
     session.subscriptions().add(sub);
 
@@ -48,19 +48,20 @@ public class WebsocketSessionStorageImpl implements WebsocketSessionStorage {
 
   @Override
   public void unsubscribe(String uid, String topicName) {
-    if (!this.isUserConnected(uid)) return;
-    final var session = this.sessions.get(uid)
-                            .toBuilder()
-                            .subscriptions(new HashSet<>(this.sessions.get(uid).subscriptions()))
-                            .build();
+    if (this.isUserConnected(uid)) return;
+    final var session =
+        this.sessions.get(uid).toBuilder()
+            .subscriptions(new HashSet<>(this.sessions.get(uid).subscriptions()))
+            .build();
 
     session.subscriptions().stream()
         .filter(s -> s.topic().equals(topicName))
         .findFirst()
-        .ifPresent(s -> {
-          session.subscriptions().remove(s);
-          this.sessions.put(session.uid(), session);
-        });
+        .ifPresent(
+            s -> {
+              session.subscriptions().remove(s);
+              this.sessions.put(session.uid(), session);
+            });
   }
 
   @Override
@@ -72,9 +73,7 @@ public class WebsocketSessionStorageImpl implements WebsocketSessionStorage {
   public boolean isUserSubscribedTo(String uid, String topicName) {
     if (!this.sessions.containsKey(uid)) return false;
 
-    return this.sessions.get(uid)
-               .subscriptions()
-               .stream()
-               .anyMatch(sub -> sub.topic().equals(topicName));
+    return this.sessions.get(uid).subscriptions().stream()
+        .anyMatch(sub -> sub.topic().equals(topicName));
   }
 }

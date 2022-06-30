@@ -15,8 +15,8 @@ public final class Responses {
 
   public static <T> ResponseEntity<T> wrap(T item) {
     return Optional.ofNullable(item)
-               .map(ResponseEntity::ok)
-               .orElse(ResponseEntity.noContent().build());
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.noContent().build());
   }
 
   public static <T> ResponseEntity<Collection<T>> wrap(Collection<T> collection) {

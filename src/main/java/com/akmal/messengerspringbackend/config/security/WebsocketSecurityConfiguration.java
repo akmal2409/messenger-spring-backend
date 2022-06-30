@@ -19,9 +19,13 @@ public class WebsocketSecurityConfiguration
   @Override
   protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
     messages
-        .simpDestMatchers("/queue/**", WebSocketConfiguration.THREAD_TOPIC).denyAll()
-        .simpDestMatchers(WebSocketConfiguration.THREAD_TOPIC + "/{threadId}").access("@userService.currentUser.threadIds.contains(T(java.util.UUID).fromString(#threadId))")
-        .anyMessage().authenticated();
+        .simpDestMatchers("/queue/**", WebSocketConfiguration.THREAD_TOPIC)
+        .denyAll()
+        .simpDestMatchers(WebSocketConfiguration.THREAD_TOPIC + "/{threadId}")
+        .access(
+            "@userService.currentUser.threadIds.contains(T(java.util.UUID).fromString(#threadId))")
+        .anyMessage()
+        .authenticated();
   }
 
   @Override

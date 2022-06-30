@@ -29,10 +29,11 @@ public class KafkaConfiguration {
   private final KafkaConfigurationProperties kafkaProps;
 
   @Bean
-  ConcurrentKafkaListenerContainerFactory<ThreadEventKey, SpecificRecord> kafkaListenerContainerFactory(
-      ConsumerFactory<ThreadEventKey, SpecificRecord> consumerFactory
-  ) {
-    final var containerFactory = new ConcurrentKafkaListenerContainerFactory<ThreadEventKey, SpecificRecord>();
+  ConcurrentKafkaListenerContainerFactory<ThreadEventKey, SpecificRecord>
+      kafkaListenerContainerFactory(
+          ConsumerFactory<ThreadEventKey, SpecificRecord> consumerFactory) {
+    final var containerFactory =
+        new ConcurrentKafkaListenerContainerFactory<ThreadEventKey, SpecificRecord>();
     containerFactory.setConsumerFactory(consumerFactory);
     return containerFactory;
   }
@@ -43,12 +44,14 @@ public class KafkaConfiguration {
   }
 
   @Bean
-  ProducerFactory<SpecificRecordBase, SpecificRecordBase> producerFactory() throws ClassNotFoundException {
+  ProducerFactory<SpecificRecordBase, SpecificRecordBase> producerFactory()
+      throws ClassNotFoundException {
     return new DefaultKafkaProducerFactory<>(this.kafkaProps.producerProps());
   }
 
   @Bean
-  KafkaTemplate<SpecificRecordBase, SpecificRecordBase> kafkaTemplate(ProducerFactory<SpecificRecordBase, SpecificRecordBase> factory) {
+  KafkaTemplate<SpecificRecordBase, SpecificRecordBase> kafkaTemplate(
+      ProducerFactory<SpecificRecordBase, SpecificRecordBase> factory) {
     return new KafkaTemplate<>(factory);
   }
 }

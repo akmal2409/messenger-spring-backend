@@ -8,5 +8,7 @@ package com.akmal.messengerspringbackend.dto.v1;
  * @since 1.0
  */
 public enum MessageStatus {
-  SENT, DELIVERED, FAILED
+  SENT,
+  DELIVERED,
+  FAILED
 }

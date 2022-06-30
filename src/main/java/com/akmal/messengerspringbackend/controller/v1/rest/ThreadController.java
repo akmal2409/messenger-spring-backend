@@ -34,7 +34,8 @@ public class ThreadController {
   private final ThreadService threadService;
 
   @GetMapping
-  public ResponseEntity<Collection<LatestThreadDTO>> findAllLatestByUser(@PathVariable String userId) {
+  public ResponseEntity<Collection<LatestThreadDTO>> findAllLatestByUser(
+      @PathVariable String userId) {
     return Responses.wrap(this.threadService.findAllLatestByUser(userId));
   }
 
@@ -45,7 +46,8 @@ public class ThreadController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public ThreadDTO createThread(@PathVariable String userId,
+  public ThreadDTO createThread(
+      @PathVariable String userId,
       @RequestBody @Valid ThreadCreationRequest threadCreationRequest) {
     return this.threadService.createThread(userId, threadCreationRequest);
   }

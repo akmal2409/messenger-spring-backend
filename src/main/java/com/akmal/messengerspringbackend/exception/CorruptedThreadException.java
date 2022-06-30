@@ -25,8 +25,8 @@ public class CorruptedThreadException extends RuntimeException {
     super(cause);
   }
 
-  public CorruptedThreadException(String message, Throwable cause, boolean enableSuppression,
-      boolean writableStackTrace) {
+  public CorruptedThreadException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

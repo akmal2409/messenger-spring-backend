@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * The exception is thrown in case there are violations during the thread creation
- * between the users.
+ * The exception is thrown in case there are violations during the thread creation between the
+ * users.
  *
  * @author Akmal Alikhujaev
  * @version 1.0
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @since 1.0
  */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class IllegalThreadCreationRequest extends RuntimeException{
+public class IllegalThreadCreationRequest extends RuntimeException {
 
   public IllegalThreadCreationRequest(String message) {
     super(message);
@@ -28,8 +28,8 @@ public class IllegalThreadCreationRequest extends RuntimeException{
     super(cause);
   }
 
-  public IllegalThreadCreationRequest(String message, Throwable cause, boolean enableSuppression,
-      boolean writableStackTrace) {
+  public IllegalThreadCreationRequest(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

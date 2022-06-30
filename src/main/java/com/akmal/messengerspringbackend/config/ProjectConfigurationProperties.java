@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties(prefix = "project")
-@Getter @Setter
+@Getter
+@Setter
 public class ProjectConfigurationProperties {
   private long customEpochMilli = Instant.EPOCH.toEpochMilli();
   private int nodeId = -1;

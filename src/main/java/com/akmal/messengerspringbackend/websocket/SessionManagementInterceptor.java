@@ -5,7 +5,6 @@ import com.akmal.messengerspringbackend.websocket.storage.WebsocketSession;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import lombok.extern.slf4j.Slf4j;

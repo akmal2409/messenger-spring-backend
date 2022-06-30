@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.data.cassandra.core.WriteResult;
 
 /**
- * The repository is specific to the cassandra data model and
- * therefore, cannot serve as a general contract for an interface.
+ * The repository is specific to the cassandra data model and therefore, cannot serve as a general
+ * contract for an interface.
  *
  * @author Akmal Alikhujaev
  * @version 1.0
@@ -34,21 +34,24 @@ public interface MessageRepository {
    * @return
    */
   ScrollContent<MessageByUserByThread> findAllByUidAndThreadIdAndBucket(
-      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, @Nullable String pagingState);
+      @NotNull String uid,
+      @NotNull UUID threadId,
+      int bucket,
+      int size,
+      @Nullable String pagingState);
 
   ScrollContent<MessageByUserByThread> findAllBeforeMessageId(
-      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, long messageId
-  );
+      @NotNull String uid, @NotNull UUID threadId, int bucket, int size, long messageId);
 
   /**
-   * Saves the message in a partition for a given user, thread and a bucket.
-   * It must perform a batch operation that will insert the message to all the users
-   * that are part of the thread.
+   * Saves the message in a partition for a given user, thread and a bucket. It must perform a batch
+   * operation that will insert the message to all the users that are part of the thread.
    *
-   * @param message                   - valid message object.
+   * @param message - valid message object.
    * @return saved message entity.
    */
   @Contract(pure = true)
-  WriteResult saveMessageForAllThreadMembers(@NotNull Collection<MessageByUserByThread> messages,
+  WriteResult saveMessageForAllThreadMembers(
+      @NotNull Collection<MessageByUserByThread> messages,
       @NotNull Collection<ThreadByUserByLastMessage> latestThreads);
 }

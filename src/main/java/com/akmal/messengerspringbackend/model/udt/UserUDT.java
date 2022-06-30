@@ -1,6 +1,5 @@
 package com.akmal.messengerspringbackend.model.udt;
 
-import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.With;
@@ -21,12 +20,16 @@ import org.springframework.data.cassandra.core.mapping.UserDefinedType;
 public class UserUDT {
   @Column("uid")
   private final String uid;
+
   @Column("first_name")
   private final String firstName;
+
   @Column("last_name")
   private final String lastName;
+
   @Column("profile_image_url")
   private final String profileImageUrl;
+
   @Column("profile_thumbnail_url")
   private final String profileThumbnailUrl;
 

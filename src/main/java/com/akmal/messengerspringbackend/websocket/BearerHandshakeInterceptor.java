@@ -18,11 +18,11 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 /**
- * Below is the implementation of the {@link ChannelInterceptor} interface.
- * Its main purpose is to intercept the STOMP CONNECT frames and introspect them for a Bearer token.
- * If the token is present and matches the configured prefix, it tries to validate it. If the token
- * is valid it sets the STOMP user header with the Authentication and is forwarded towards
- * the spring security filter-chain that requires users to be authenticated.
+ * Below is the implementation of the {@link ChannelInterceptor} interface. Its main purpose is to
+ * intercept the STOMP CONNECT frames and introspect them for a Bearer token. If the token is
+ * present and matches the configured prefix, it tries to validate it. If the token is valid it sets
+ * the STOMP user header with the Authentication and is forwarded towards the spring security
+ * filter-chain that requires users to be authenticated.
  *
  * @author Akmal Alikhujaev
  * @version 1.0
@@ -34,9 +34,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 public class BearerHandshakeInterceptor implements ChannelInterceptor {
 
   private final JwtDecoder jwtDecoder;
-  private String bearerPrefix;
-
   private final JwtAuthenticationConverter jwtAuthenticationConverter;
+  private String bearerPrefix;
 
   private BearerHandshakeInterceptor(JwtDecoder jwtDecoder) {
     this(jwtDecoder, new JwtAuthenticationConverter(), "Bearer ");
@@ -45,16 +44,21 @@ public class BearerHandshakeInterceptor implements ChannelInterceptor {
   private BearerHandshakeInterceptor(
       JwtDecoder jwtDecoder, JwtAuthenticationConverter jwtAuthenticationConverter, String prefix) {
     this.jwtDecoder = Objects.requireNonNull(jwtDecoder, "JwtDecoder was null");
-    this.jwtAuthenticationConverter = Objects.requireNonNull(jwtAuthenticationConverter, "Jwt authentication converter was null");
+    this.jwtAuthenticationConverter =
+        Objects.requireNonNull(jwtAuthenticationConverter, "Jwt authentication converter was null");
     this.bearerPrefix = Objects.requireNonNull(prefix, "Bearer token header prefix was null");
 
     if (this.bearerPrefix.length() > 0
-            && !Character.isSpaceChar(this.bearerPrefix.charAt(this.bearerPrefix.length() - 1))) {
+        && !Character.isSpaceChar(this.bearerPrefix.charAt(this.bearerPrefix.length() - 1))) {
       this.bearerPrefix = this.bearerPrefix.concat(" ");
     }
 
-    log.info("Event {} of a {} class with bearer prefix {} in module {} as an {} component.", this.getClass().getName(),
-        v("bearer_prefix", this.bearerPrefix), v("module", "websocket"), v("component", "interceptor"),
+    log.info(
+        "Event {} of a {} class with bearer prefix {} in module {} as an {} component.",
+        this.getClass().getName(),
+        v("bearer_prefix", this.bearerPrefix),
+        v("module", "websocket"),
+        v("component", "interceptor"),
         v("event", "bootstrap_configuration"));
   }
 
@@ -85,9 +89,13 @@ public class BearerHandshakeInterceptor implements ChannelInterceptor {
 
       headerAccessor.setUser(authentication);
 
-      log.debug("Event {}. User with ID {} has connected over {} protocol and sub protocol {}. Authenticated via {} token",
-          v("event", "connect"), v("userId", authentication.getName()),
-          v("protocol", "websocket"), v("ws_sub_protocol", "stomp"), v("authentication_type", "bearer"));
+      log.debug(
+          "Event {}. User with ID {} has connected over {} protocol and sub protocol {}. Authenticated via {} token",
+          v("event", "connect"),
+          v("userId", authentication.getName()),
+          v("protocol", "websocket"),
+          v("ws_sub_protocol", "stomp"),
+          v("authentication_type", "bearer"));
     }
 
     return message;

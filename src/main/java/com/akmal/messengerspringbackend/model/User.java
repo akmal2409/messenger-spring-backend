@@ -29,24 +29,37 @@ import org.springframework.data.cassandra.core.mapping.Table;
 public class User {
   @PrimaryKey("uid")
   private final String uid;
+
   @Column("first_name")
   private final String firstName;
+
   @Column("last_name")
   private final String lastName;
+
   @Column("email")
   private final String email;
+
   @Column("contacts")
   private final Set<@Frozen UserUDT> contacts;
+
   @Column("thread_ids")
   private final Set<UUID> threadIds;
+
   @Column("profile_thumbnail_url")
   private final String profileThumbnailUrl;
+
   @Column("profile_image_url")
   private final String profileImageUrl;
 
-
-  public User(String uid, String firstName, String lastName, String email,
-      Set<UserUDT> contacts, Set<UUID> threadIds, String profileThumbnailUrl, String profileImageUrl) {
+  public User(
+      String uid,
+      String firstName,
+      String lastName,
+      String email,
+      Set<UserUDT> contacts,
+      Set<UUID> threadIds,
+      String profileThumbnailUrl,
+      String profileImageUrl) {
     this.uid = uid;
     this.firstName = firstName;
     this.lastName = lastName;
@@ -57,6 +70,15 @@ public class User {
     this.profileImageUrl = profileImageUrl;
   }
 
+  public static User fromIdpMetadata(IdpUserMetadata idpUserMetadata) {
+    return User.builder()
+        .uid(idpUserMetadata.uid())
+        .firstName(idpUserMetadata.firstName())
+        .lastName(idpUserMetadata.lastName())
+        .email(idpUserMetadata.email())
+        .build();
+  }
+
   @JsonIgnore
   public String getFullName() {
     return String.format("%s %s", this.firstName, this.lastName);
@@ -64,21 +86,11 @@ public class User {
 
   public UserUDT toUDT() {
     return UserUDT.builder()
-               .uid(this.uid)
-               .firstName(this.firstName)
-               .lastName(this.lastName)
-               .profileThumbnailUrl(this.profileThumbnailUrl)
-               .profileImageUrl(this.profileImageUrl)
-               .build();
-
-  }
-
-  public static User fromIdpMetadata(IdpUserMetadata idpUserMetadata) {
-    return User.builder()
-               .uid(idpUserMetadata.uid())
-               .firstName(idpUserMetadata.firstName())
-               .lastName(idpUserMetadata.lastName())
-               .email(idpUserMetadata.email())
-               .build();
+        .uid(this.uid)
+        .firstName(this.firstName)
+        .lastName(this.lastName)
+        .profileThumbnailUrl(this.profileThumbnailUrl)
+        .profileImageUrl(this.profileImageUrl)
+        .build();
   }
 }

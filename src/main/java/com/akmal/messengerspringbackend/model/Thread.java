@@ -26,18 +26,29 @@ import org.springframework.data.cassandra.core.mapping.Table;
 public class Thread {
   @PrimaryKey("thread_id")
   private final UUID threadId;
+
   @Column("members")
   private final Set<@Frozen UserUDT> members;
+
   @Column("thread_name")
   private final String threadName;
+
   @Column("thread_picture_thumbnail_url")
   private final String threadPictureThumbnailUrl;
+
   @Column("thread_picture_url")
   private final String threadPictureUrl;
+
   @Column("is_group_thread")
   private final boolean groupThread;
-  public Thread(UUID threadId, Set<UserUDT> members, String threadName,
-      String threadPictureThumbnailUrl, String threadPictureUrl, boolean groupThread) {
+
+  public Thread(
+      UUID threadId,
+      Set<UserUDT> members,
+      String threadName,
+      String threadPictureThumbnailUrl,
+      String threadPictureUrl,
+      boolean groupThread) {
     this.threadId = threadId;
     this.members = Optional.ofNullable(members).orElse(Set.of());
     this.threadName = threadName;

@@ -21,5 +21,6 @@ public interface ThreadRepository {
 
   Thread save(Thread thread);
 
-  List<ThreadByUserByLastMessage> saveAllThreadByUserByLastMessage(List<ThreadByUserByLastMessage> threads);
+  List<ThreadByUserByLastMessage> saveAllThreadByUserByLastMessage(
+      List<ThreadByUserByLastMessage> threads);
 }

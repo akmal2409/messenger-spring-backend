@@ -24,8 +24,8 @@ public class AuthorizationException extends RuntimeException {
     super(cause);
   }
 
-  public AuthorizationException(String message, Throwable cause, boolean enableSuppression,
-      boolean writableStackTrace) {
+  public AuthorizationException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

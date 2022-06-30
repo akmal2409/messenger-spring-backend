@@ -38,43 +38,48 @@ public class ThreadRepositoryImpl implements ThreadRepository {
   @Override
   public Optional<Thread> findByThreadId(UUID threadId) {
     return Optional.ofNullable(
-        this.cassandraOperations.selectOne(SimpleStatement.newInstance("SELECT * FROM threads WHERE thread_id = ?",
-            threadId), Thread.class));
+        this.cassandraOperations.selectOne(
+            SimpleStatement.newInstance("SELECT * FROM threads WHERE thread_id = ?", threadId),
+            Thread.class));
   }
 
   @Override
   public List<ThreadByUserByLastMessage> findThreadByLastMessageByUser(String uid) {
-    return this.cassandraOperations
-               .select(SimpleStatement
-                       .newInstance("SELECT * FROM threads_by_user_by_last_message WHERE uid = ?",
-                           uid),
-                   ThreadByUserByLastMessage.class);
+    return this.cassandraOperations.select(
+        SimpleStatement.newInstance(
+            "SELECT * FROM threads_by_user_by_last_message WHERE uid = ?", uid),
+        ThreadByUserByLastMessage.class);
   }
 
   @Override
   public Thread save(Thread thread) {
-    return this.cassandraOperations
-               .insert(thread);
+    return this.cassandraOperations.insert(thread);
   }
 
   @Override
   public List<ThreadByUserByLastMessage> saveAllThreadByUserByLastMessage(
-     @NotNull List<ThreadByUserByLastMessage> threads) {
+      @NotNull List<ThreadByUserByLastMessage> threads) {
     final var countDownLatch = new CountDownLatch(threads.size());
     final var lastException = new AtomicReference<Throwable>();
-    final var futures = new LinkedList<ListenableFuture<EntityWriteResult<ThreadByUserByLastMessage>>>();
+    final var futures =
+        new LinkedList<ListenableFuture<EntityWriteResult<ThreadByUserByLastMessage>>>();
 
-    for (ThreadByUserByLastMessage thread: threads) {
-      final var future = this.asyncCassandraOperations.insert(thread, InsertOptions.builder()
-                                                       .executionProfile("custom-retries")
-                                                       .consistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
-                                                       .build());
+    for (ThreadByUserByLastMessage thread : threads) {
+      final var future =
+          this.asyncCassandraOperations.insert(
+              thread,
+              InsertOptions.builder()
+                  .executionProfile("custom-retries")
+                  .consistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+                  .build());
       futures.add(future);
 
-      future.addCallback(t -> countDownLatch.countDown(), e -> {
-        lastException.set(e);
-        countDownLatch.countDown();
-      });
+      future.addCallback(
+          t -> countDownLatch.countDown(),
+          e -> {
+            lastException.set(e);
+            countDownLatch.countDown();
+          });
     }
 
     try {
@@ -84,12 +89,13 @@ public class ThreadRepositoryImpl implements ThreadRepository {
     }
 
     if (lastException.get() != null) {
-      throw new DataAccessException("The threads could not be saved due to the persistence exception", lastException.get());
+      throw new DataAccessException(
+          "The threads could not be saved due to the persistence exception", lastException.get());
     }
 
     return futures.stream()
-               .map(future -> future.completable().join())
-               .map(EntityWriteResult::getEntity)
-               .toList();
+        .map(future -> future.completable().join())
+        .map(EntityWriteResult::getEntity)
+        .toList();
   }
 }

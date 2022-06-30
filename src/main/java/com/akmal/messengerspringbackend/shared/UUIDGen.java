@@ -4,18 +4,15 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Akmal Alikhujaev
@@ -54,7 +51,7 @@ public class UUIDGen {
       final String content =
           Stream.concat(ids.stream(), timeBased.stream()).collect(Collectors.joining("\n"));
 
-      try (final var writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
+      try (final var writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
         writer.write(content);
       } catch (IOException e) {
 

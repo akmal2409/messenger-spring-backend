@@ -6,7 +6,6 @@ import com.akmal.messengerspringbackend.model.ThreadByUserByLastMessage;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.cql.PagingState;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -66,8 +65,7 @@ public class MessageRepositoryImpl implements MessageRepository {
         log.error("type=exception; reason=Paging state parsing failed; value={}", pagingState, e);
       }
 
-      statement =
-          statement.setPagingState(parsedPaginState);
+      statement = statement.setPagingState(parsedPaginState);
     }
 
     final var resultSet = this.cassandraOperations.execute(statement);
@@ -96,16 +94,15 @@ public class MessageRepositoryImpl implements MessageRepository {
 
   private <T> ScrollContent<T> fetchCurrentPage(ResultSet resultSet, Class<T> clazz) {
     final var content = new LinkedList<T>();
-    final var pagingState = Optional.ofNullable(resultSet.getExecutionInfo().getSafePagingState())
-                                .map(PagingState::toString)
-                                .orElse(null);
-
+    final var pagingState =
+        Optional.ofNullable(resultSet.getExecutionInfo().getSafePagingState())
+            .map(PagingState::toString)
+            .orElse(null);
 
     while (resultSet.getAvailableWithoutFetching() > 0) {
-       final var row = resultSet.one();
+      final var row = resultSet.one();
 
-      content.add(
-          this.cassandraOperations.getConverter().read(clazz, row));
+      content.add(this.cassandraOperations.getConverter().read(clazz, row));
     }
 
     return ScrollContent.of(content, pagingState);
@@ -142,7 +139,6 @@ public class MessageRepositoryImpl implements MessageRepository {
       threadFuture.addCallback(
           res -> countDownLatch.countDown(), error -> countDownLatch.countDown());
     }
-
 
     try {
       countDownLatch.await(5, TimeUnit.SECONDS);

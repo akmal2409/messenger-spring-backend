@@ -27,7 +27,8 @@ import org.springframework.util.StringUtils;
  * @since 1.0
  */
 public class LocalDcConsistencyDowngradingRetryPolicy implements RetryPolicy {
-  private static final Logger log = LoggerFactory.getLogger(LocalDcConsistencyDowngradingRetryPolicy.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(LocalDcConsistencyDowngradingRetryPolicy.class);
   private static final ConsistencyLevel DOWNGRADED_CL = ConsistencyLevel.LOCAL_ONE;
 
   private static final int DEFAULT_MAX_READ_ATTEMPTS = 2;
@@ -41,20 +42,25 @@ public class LocalDcConsistencyDowngradingRetryPolicy implements RetryPolicy {
   public LocalDcConsistencyDowngradingRetryPolicy(DriverContext context, String profileName) {
     DriverExecutionProfile executionProfile = context.getConfig().getDefaultProfile();
 
-    if (StringUtils.hasText(profileName) && context.getConfig().getProfiles().containsKey(profileName)) {
+    if (StringUtils.hasText(profileName)
+        && context.getConfig().getProfiles().containsKey(profileName)) {
       executionProfile = context.getConfig().getProfile(profileName);
     }
 
-    this.maxReadAttempts = executionProfile.getInt(DseCustomDriverOption.MAX_READ_ATTEMPTS,
-        DEFAULT_MAX_READ_ATTEMPTS);
-    this.maxWriteAttempts = executionProfile.getInt(DseCustomDriverOption.MAX_WRITE_ATTEMPTS,
-        DEFAULT_MAX_WRITE_ATTEMPTS);
+    this.maxReadAttempts =
+        executionProfile.getInt(DseCustomDriverOption.MAX_READ_ATTEMPTS, DEFAULT_MAX_READ_ATTEMPTS);
+    this.maxWriteAttempts =
+        executionProfile.getInt(
+            DseCustomDriverOption.MAX_WRITE_ATTEMPTS, DEFAULT_MAX_WRITE_ATTEMPTS);
     this.logPrefix = String.format("%s|%s", context.getSessionName(), profileName);
 
     if (log.isDebugEnabled()) {
-      log.debug("[{}] Setting up custom retry policy with max-read-attempts={} "
-                    + "max-write-attempts={}", this.logPrefix,
-          this.maxReadAttempts, this.maxWriteAttempts);
+      log.debug(
+          "[{}] Setting up custom retry policy with max-read-attempts={} "
+              + "max-write-attempts={}",
+          this.logPrefix,
+          this.maxReadAttempts,
+          this.maxWriteAttempts);
     }
   }
 
@@ -82,9 +88,16 @@ public class LocalDcConsistencyDowngradingRetryPolicy implements RetryPolicy {
     }
 
     if (log.isTraceEnabled()) {
-      log.trace("[{}] Verdict on read timeout (consistency: {}, required responses: {}, "
-                    + "received responses: {}, data retrieved: {}, retries: {}): {}",
-          this.logPrefix, cl, blockFor, received, dataPresent, retryCount, retryVerdict);
+      log.trace(
+          "[{}] Verdict on read timeout (consistency: {}, required responses: {}, "
+              + "received responses: {}, data retrieved: {}, retries: {}): {}",
+          this.logPrefix,
+          cl,
+          blockFor,
+          received,
+          dataPresent,
+          retryCount,
+          retryVerdict);
     }
 
     return retryVerdict;
@@ -120,9 +133,16 @@ public class LocalDcConsistencyDowngradingRetryPolicy implements RetryPolicy {
     }
 
     if (log.isTraceEnabled()) {
-      log.trace("[{}] Verdict on write timeout (consistency: {}, write type: {}, required acknowledgments: {}, "
-                    + "received acknowledgments: {}, retries: {}): {}",
-          this.logPrefix, cl, writeType, blockFor, received, retryCount, retryVerdict);
+      log.trace(
+          "[{}] Verdict on write timeout (consistency: {}, write type: {}, required acknowledgments: {}, "
+              + "received acknowledgments: {}, retries: {}): {}",
+          this.logPrefix,
+          cl,
+          writeType,
+          blockFor,
+          received,
+          retryCount,
+          retryVerdict);
     }
 
     return retryVerdict;
@@ -153,31 +173,54 @@ public class LocalDcConsistencyDowngradingRetryPolicy implements RetryPolicy {
     }
 
     if (log.isTraceEnabled()) {
-      log.trace("[{}] Verdict on unavailable exception (consistency: {}, required replica: {}, alive replica: {}, retries: {}): {}",
-          this.logPrefix, cl,
-          required, alive, retryCount, retryVerdict);
+      log.trace(
+          "[{}] Verdict on unavailable exception (consistency: {}, required replica: {}, alive replica: {}, retries: {}): {}",
+          this.logPrefix,
+          cl,
+          required,
+          alive,
+          retryCount,
+          retryVerdict);
     }
 
     return retryVerdict;
   }
 
   @Override
-  public RetryVerdict onRequestAbortedVerdict(@NonNull Request request, @NonNull Throwable error, int retryCount) {
-    RetryVerdict verdict = !(error instanceof ClosedConnectionException) && !(error instanceof HeartbeatException) ? RetryVerdict.RETHROW : RetryVerdict.RETRY_NEXT;
+  public RetryVerdict onRequestAbortedVerdict(
+      @NonNull Request request, @NonNull Throwable error, int retryCount) {
+    RetryVerdict verdict =
+        !(error instanceof ClosedConnectionException) && !(error instanceof HeartbeatException)
+            ? RetryVerdict.RETHROW
+            : RetryVerdict.RETRY_NEXT;
     if (log.isTraceEnabled()) {
-      log.trace("[{}] Verdict on aborted request (type: {}, message: '{}', retries: {}): {}",
-          this.logPrefix, error.getClass().getSimpleName(), error.getMessage(), retryCount, verdict);
+      log.trace(
+          "[{}] Verdict on aborted request (type: {}, message: '{}', retries: {}): {}",
+          this.logPrefix,
+          error.getClass().getSimpleName(),
+          error.getMessage(),
+          retryCount,
+          verdict);
     }
 
     return verdict;
   }
 
   @Override
-  public RetryVerdict onErrorResponseVerdict(@NonNull Request request, @NonNull CoordinatorException error, int retryCount) {
-    RetryVerdict verdict = !(error instanceof WriteFailureException) && !(error instanceof ReadFailureException) ? RetryVerdict.RETRY_NEXT : RetryVerdict.RETHROW;
+  public RetryVerdict onErrorResponseVerdict(
+      @NonNull Request request, @NonNull CoordinatorException error, int retryCount) {
+    RetryVerdict verdict =
+        !(error instanceof WriteFailureException) && !(error instanceof ReadFailureException)
+            ? RetryVerdict.RETRY_NEXT
+            : RetryVerdict.RETHROW;
     if (log.isTraceEnabled()) {
-      log.trace("[{}] Verdict on node error (type: {}, message: '{}', retries: {}): {}",
-          this.logPrefix, error.getClass().getSimpleName(), error.getMessage(), retryCount, verdict);
+      log.trace(
+          "[{}] Verdict on node error (type: {}, message: '{}', retries: {}): {}",
+          this.logPrefix,
+          error.getClass().getSimpleName(),
+          error.getMessage(),
+          retryCount,
+          verdict);
     }
 
     return verdict;

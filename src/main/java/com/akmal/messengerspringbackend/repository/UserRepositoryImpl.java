@@ -60,14 +60,16 @@ public class UserRepositoryImpl implements UserRepository {
     final var countDownLatch = new CountDownLatch(ids.size());
     final var exceptionAtomicReference = new AtomicReference<Throwable>();
 
-    for (final String id: ids) {
-      final var future = this.asyncCassandraOperations
-                             .selectOne(SimpleStatement.newInstance("SELECT * FROM users WHERE uid = ?", id),
-                                 User.class);
-      future.addCallback(u -> countDownLatch.countDown(), e -> {
-        exceptionAtomicReference.compareAndSet(null, e);
-        countDownLatch.countDown();
-      });
+    for (final String id : ids) {
+      final var future =
+          this.asyncCassandraOperations.selectOne(
+              SimpleStatement.newInstance("SELECT * FROM users WHERE uid = ?", id), User.class);
+      future.addCallback(
+          u -> countDownLatch.countDown(),
+          e -> {
+            exceptionAtomicReference.compareAndSet(null, e);
+            countDownLatch.countDown();
+          });
       userFutures.add(future);
     }
 
@@ -78,11 +80,10 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     if (exceptionAtomicReference.get() != null) {
-      throw new DataAccessException("There was an error while retrieving the list of users", exceptionAtomicReference.get());
+      throw new DataAccessException(
+          "There was an error while retrieving the list of users", exceptionAtomicReference.get());
     }
 
-    return userFutures.stream()
-        .map(future -> future.completable().join())
-        .toList();
+    return userFutures.stream().map(future -> future.completable().join()).toList();
   }
 }

@@ -16,6 +16,7 @@ public interface WebsocketSessionStorage {
   void remove(String uid);
 
   void unsubscribe(String uid, String topicName);
+
   boolean isUserConnected(String uid);
 
   boolean isUserSubscribedTo(String uid, String topicName);

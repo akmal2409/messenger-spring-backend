@@ -109,11 +109,9 @@ public class CassandraConfiguration extends AbstractCassandraConfiguration {
    * specified in the {@link CassandraConfigurationProperties#getData()} and {@link
    * CassandraConfigurationProperties#getSchema()}.
    *
-   * At the start up if one of the scripts is enabled through the the application properties then
-   * @Conditional is triggered and the bean is injected into the spring's context with the loaded
-   * scipts that are executed in the following order.
-   * 1) Schema creation
-   * 2) Data population
+   * <p>At the start up if one of the scripts is enabled through the the application properties
+   * then @Conditional is triggered and the bean is injected into the spring's context with the
+   * loaded scipts that are executed in the following order. 1) Schema creation 2) Data population
    *
    * @param sessionFactory {@link AbstractSessionConfiguration#getRequiredSessionFactory()}
    * @return {@link SessionFactoryInitializer}

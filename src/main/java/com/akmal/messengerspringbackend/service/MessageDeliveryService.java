@@ -37,18 +37,6 @@ public class MessageDeliveryService {
   private final WebsocketSessionStorage sessionStorage;
   private final SimpMessagingTemplate wsMessagingTemplate;
 
-  @Builder
-  static record FanoutMessageMetadata(
-      @NotNull UUID threadId,
-      @Nullable String threadName,
-      @NotNull String recipientId,
-      long messageId,
-      @Nullable String authorId,
-      @Nullable String authorName,
-      int bucket,
-      @Nullable String body,
-      int systemMessage) {}
-
   /**
    * Delivers the message to the active user when invoked. In case, the user is not online, i.e.
    * his/her websocket session is not registered in the registry, then the message is dropped. (In
@@ -125,4 +113,16 @@ public class MessageDeliveryService {
 
     return new Tuple<>(key, value);
   }
+
+  @Builder
+  record FanoutMessageMetadata(
+      @NotNull UUID threadId,
+      @Nullable String threadName,
+      @NotNull String recipientId,
+      long messageId,
+      @Nullable String authorId,
+      @Nullable String authorName,
+      int bucket,
+      @Nullable String body,
+      int systemMessage) {}
 }

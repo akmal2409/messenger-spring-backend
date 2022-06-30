@@ -24,9 +24,8 @@ public class OktaUserService implements IdpUserService {
     return IdpUserMetadata.builder()
         .email(user.getProfile().getEmail())
         .firstName(user.getProfile().getFirstName())
-               .lastName(user.getProfile().getLastName())
-               .uid(user.getId())
-
+        .lastName(user.getProfile().getLastName())
+        .uid(user.getId())
         .build();
   }
 }

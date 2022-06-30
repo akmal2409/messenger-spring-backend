@@ -14,7 +14,6 @@ public enum DseCustomDriverOption implements DriverOption {
   MAX_READ_ATTEMPTS("advanced.retry-policy.custom-retry-policy.max-read-attempts"),
   MAX_WRITE_ATTEMPTS("advanced.retry-policy.custom-retry-policy.max-read-attempts");
 
-
   private final String path;
 
   DseCustomDriverOption(String path) {

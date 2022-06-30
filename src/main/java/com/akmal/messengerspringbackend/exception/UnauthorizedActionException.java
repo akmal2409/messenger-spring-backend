@@ -25,8 +25,8 @@ public class UnauthorizedActionException extends RuntimeException {
     super(cause);
   }
 
-  public UnauthorizedActionException(String message, Throwable cause, boolean enableSuppression,
-      boolean writableStackTrace) {
+  public UnauthorizedActionException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
 }

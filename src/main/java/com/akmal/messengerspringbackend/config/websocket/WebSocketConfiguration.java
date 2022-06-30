@@ -30,11 +30,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
   public static final String NOTIFICATION_TOPIC = "/user/queue/notifications";
   public static final String ERROR_TOPIC = "/user/queue/errors";
-  public static final String THREAD_TOPIC = "/user/queue/threads"; // + threadId TODO: secure threads by checking subscriber
-
+  public static final String THREAD_TOPIC =
+      "/user/queue/threads"; // + threadId TODO: secure threads by checking subscriber
+  private static final String BEARER_PREFIX = "Bearer ";
   private final JwtDecoder jwtDecoder;
   private final JwtAuthenticationConverter authenticationConverter;
-  private static final String BEARER_PREFIX = "Bearer ";
   private final WebsocketSessionStorage sessionStorage;
 
   @Override
@@ -47,7 +47,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws")
+    registry
+        .addEndpoint("/ws")
         .setAllowedOriginPatterns("*")
         .addInterceptors(new IpHandshakeInterceptor())
         .withSockJS();
@@ -55,11 +56,10 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-    final var bearerInterceptor = BearerHandshakeInterceptor
-                                      .customInstance(jwtDecoder, authenticationConverter,
-                                          BEARER_PREFIX);
-    final var sessionInterceptor = SessionManagementInterceptor
-                                       .withStore(this.sessionStorage);
+    final var bearerInterceptor =
+        BearerHandshakeInterceptor.customInstance(
+            jwtDecoder, authenticationConverter, BEARER_PREFIX);
+    final var sessionInterceptor = SessionManagementInterceptor.withStore(this.sessionStorage);
 
     registration.interceptors(bearerInterceptor, sessionInterceptor);
   }

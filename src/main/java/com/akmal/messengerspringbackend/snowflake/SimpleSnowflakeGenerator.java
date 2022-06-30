@@ -129,6 +129,16 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
     return new SimpleSnowflakeGenerator(epochMilli, nodeId);
   }
 
+  public static void main(String[] args) {
+    final long customEpoch = Instant.parse("2022-05-31T00:00:00Z").toEpochMilli();
+
+    SnowflakeGenerator snowflakeGenerator = SimpleSnowflakeGenerator.withCustomEpoch(customEpoch);
+
+    final long snowflake = snowflakeGenerator.nextId();
+
+    System.out.println("Timestamp " + snowflakeGenerator.toInstant(snowflake));
+  }
+
   /**
    * Snowflake of 64 bits has the next format:
    *
@@ -249,15 +259,5 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
           "Unable to read network interfaces. Make sure that there is at least 1 network interface.",
           cause);
     }
-  }
-
-  public static void main(String[] args) {
-    final long customEpoch = Instant.parse("2022-05-31T00:00:00Z").toEpochMilli();
-
-    SnowflakeGenerator snowflakeGenerator = SimpleSnowflakeGenerator.withCustomEpoch(customEpoch);
-
-    final long snowflake = snowflakeGenerator.nextId();
-
-    System.out.println("Timestamp " + snowflakeGenerator.toInstant(snowflake));
   }
 }

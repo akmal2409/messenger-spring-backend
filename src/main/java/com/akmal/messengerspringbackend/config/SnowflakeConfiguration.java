@@ -1,6 +1,5 @@
 package com.akmal.messengerspringbackend.config;
 
-import com.akmal.messengerspringbackend.config.ProjectConfigurationProperties;
 import com.akmal.messengerspringbackend.snowflake.SimpleSnowflakeGenerator;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +18,8 @@ public class SnowflakeConfiguration {
   @Bean
   SnowflakeGenerator snowflakeGenerator(ProjectConfigurationProperties projectProps) {
     if (projectProps.getNodeId() != -1) {
-      return SimpleSnowflakeGenerator.withCustomEpochAndNodeId(projectProps.getCustomEpochMilli(),
-          projectProps.getNodeId());
+      return SimpleSnowflakeGenerator.withCustomEpochAndNodeId(
+          projectProps.getCustomEpochMilli(), projectProps.getNodeId());
     } else {
       return SimpleSnowflakeGenerator.withCustomEpoch(projectProps.getCustomEpochMilli());
     }

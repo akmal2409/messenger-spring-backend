@@ -24,15 +24,22 @@ public class SecurityConfiguration {
   @Order(1)
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http.authorizeRequests(authorize -> authorize
-                                                   .antMatchers("/api/v1/users/{userId}/**").access("authentication.name == #userId")
-                                                   .antMatchers(ThreadController.BASE_URL.concat("/{threadId}/**")).access("@threadService.isUserThreadParticipant(#userId, #threadId)")
-                                                   .antMatchers("/ws/**").permitAll()
-                                                   .anyRequest().authenticated())
+    return http.authorizeRequests(
+            authorize ->
+                authorize
+                    .antMatchers("/api/v1/users/{userId}/**")
+                    .access("authentication.name == #userId")
+                    .antMatchers(ThreadController.BASE_URL.concat("/{threadId}/**"))
+                    .access("@threadService.isUserThreadParticipant(#userId, #threadId)")
+                    .antMatchers("/ws/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
         .oauth2ResourceServer(
             oauth2 -> oauth2.jwt().jwtAuthenticationConverter(jwtAuthenticationConverter()))
-               .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
-                   SessionCreationPolicy.STATELESS))
+        .sessionManagement(
+            sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .csrf()
         .disable()
         .cors()

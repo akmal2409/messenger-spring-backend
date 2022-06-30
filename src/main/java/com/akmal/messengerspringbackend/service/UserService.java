@@ -3,7 +3,6 @@ package com.akmal.messengerspringbackend.service;
 import com.akmal.messengerspringbackend.model.User;
 import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.service.idp.IdpUserService;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,8 @@ public class UserService {
     final var userOptional = this.userRepository.findByUid(uid);
 
     if (userOptional.isPresent()) return userOptional.get();
-    // else we have to initialize user object with minimal configuration by calling Okta's API (/user endpoint)
+    // else we have to initialize user object with minimal configuration by calling Okta's API
+    // (/user endpoint)
 
     final var userMetadata = this.idpUserService.getUserMetadataById(uid);
     final var user = User.fromIdpMetadata(userMetadata);
