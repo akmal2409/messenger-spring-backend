@@ -24,6 +24,7 @@
     <avro.schemas.folder>src/main/resources/avro/com/akmal/messengerspringbackend</avro.schemas.folder>
     <avro.version>1.11.0</avro.version>
     <okta.sdk.version>8.2.1</okta.sdk.version>
+    <logstash.logback.encoder.version>7.2</logstash.logback.encoder.version>
   </properties>
 
   <dependencies>
@@ -146,6 +147,23 @@
       <groupId>io.confluent</groupId>
       <artifactId>kafka-avro-serializer</artifactId>
       <version>${io.confluent.schema-registry.version}</version>
+    </dependency>
+
+    <!-- Logging   -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>${logstash.logback.encoder.version}</version>
     </dependency>
 
   </dependencies>
