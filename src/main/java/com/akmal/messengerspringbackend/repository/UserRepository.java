@@ -1,8 +1,10 @@
 package com.akmal.messengerspringbackend.repository;
 
 import com.akmal.messengerspringbackend.model.User;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
 
 /**
  * @author Akmal Alikhujaev
@@ -12,6 +14,8 @@ import java.util.UUID;
  * @since 1.0
  */
 public interface UserRepository {
+
+  List<User> findAllByIds(Collection<String> ids);
 
   Optional<User> findByUid(String uid);
 
