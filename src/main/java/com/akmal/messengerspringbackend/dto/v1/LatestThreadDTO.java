@@ -9,9 +9,8 @@ package com.akmal.messengerspringbackend.dto.v1;
  */
 public record LatestThreadDTO(
     String threadId,
-    String uid,
     long lastMessageId,
-    String lastActivityAt,
+    String lastMessageAt,
     String threadName,
     String threadPictureThumbnailUrl,
     String lastMessage,
