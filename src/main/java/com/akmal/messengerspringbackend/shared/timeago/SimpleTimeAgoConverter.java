@@ -66,16 +66,16 @@ class SimpleTimeAgoConverter implements TimeAgoConverter {
     final long difference = currentTime.getEpochSecond() - time.getEpochSecond();
 
     if (difference < 60) return "Now";
-    else if (difference < 120) return "A minute ago";
+    else if (difference < 120) return "A minute";
     else if (difference < 3600)
-      return String.format("%d minutes ago", Math.round(Math.floor(difference / (double) 60)));
-    else if (difference < 3600 * 2) return "An hour ago";
+      return String.format("%d minutes", Math.round(Math.floor(difference / (double) 60)));
+    else if (difference < 3600 * 2) return "An hour";
     else if (difference < 3600 * 24)
-      return String.format("%d hours ago", Math.round(Math.floor(difference / (double) 3600)));
-    else if (difference < 3600 * 24 * 2) return "A day ago";
+      return String.format("%d hours", Math.round(Math.floor(difference / (double) 3600)));
+    else if (difference < 3600 * 24 * 2) return "A day";
     else if (difference < 3600 * 24 * 7)
       return String.format(
-          "%d days ago", Math.round(Math.floor(difference / ((double) 3600 * 24))));
+          "%d days", Math.round(Math.floor(difference / ((double) 3600 * 24))));
     else return time.atZone(ZoneId.systemDefault()).format(this.formatter);
   }
 }
