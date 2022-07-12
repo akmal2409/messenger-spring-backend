@@ -1,6 +1,8 @@
 package com.akmal.messengerspringbackend.websocket.dto;
 
 import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
+import java.time.LocalDateTime;
+import lombok.With;
 
 /**
  * @author Akmal Alikhujaev
@@ -9,6 +11,7 @@ import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
  * @project messenger-spring-backend
  * @since 1.0
  */
+@With
 public record MessageEventDto(
     long messageId,
     String threadId,
@@ -17,12 +20,13 @@ public record MessageEventDto(
     String authorId,
     String authorName,
     String body,
+    LocalDateTime timestamp,
     boolean read,
     boolean edited,
     boolean systemMessage
 ) {
 
-  public static MessageEventDto fromThreadMessageEvent(ThreadMessageEvent messageEvent) {
+  public static MessageEventDto fromThreadMessageEvent(ThreadMessageEvent messageEvent, LocalDateTime timestamp) {
     return new MessageEventDto(
         messageEvent.getMessageId(),
         messageEvent.getThreadId().toString(),
@@ -31,6 +35,7 @@ public record MessageEventDto(
         messageEvent.getAuthorId().toString(),
         messageEvent.getAuthorName().toString(),
         messageEvent.getBody().toString(),
+        timestamp,
         messageEvent.getRead(),
         messageEvent.getEdited(),
         messageEvent.getSystemMessage()
