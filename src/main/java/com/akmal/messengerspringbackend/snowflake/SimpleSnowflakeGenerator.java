@@ -129,16 +129,6 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
     return new SimpleSnowflakeGenerator(epochMilli, nodeId);
   }
 
-  public static void main(String[] args) {
-    final long customEpoch = Instant.parse("2022-05-31T00:00:00Z").toEpochMilli();
-
-    SnowflakeGenerator snowflakeGenerator = SimpleSnowflakeGenerator.withCustomEpoch(customEpoch);
-
-    final long snowflake = snowflakeGenerator.nextId();
-
-    System.out.println("Timestamp " + snowflakeGenerator.toInstant(snowflake));
-  }
-
   /**
    * Snowflake of 64 bits has the next format:
    *
@@ -167,7 +157,7 @@ public class SimpleSnowflakeGenerator implements SnowflakeGenerator {
 
     snowflake |= seqNo; // set first 12 bits
 
-    snowflake |= (this.nodeId << NUMBER_OF_BITS_SEQ_NO);
+    snowflake |= ((long) this.nodeId << NUMBER_OF_BITS_SEQ_NO);
 
     snowflake |= (currentTimestamp << NUMBER_OF_BITS_SEQ_NO + NUMBER_OF_BITS_NODE_ID);
 
