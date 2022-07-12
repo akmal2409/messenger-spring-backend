@@ -148,4 +148,13 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     return null;
   }
+
+  @Override
+  public void updateIsRead(@NotNull String uid, @NotNull UUID threadId, int bucket,
+      long messageId, boolean state) {
+    this.cassandraOperations.getCqlOperations()
+        .execute(SimpleStatement.newInstance("UPDATE messages_by_user_by_thread SET is_read = ? "
+                                                 + "WHERE uid = ? AND thread_id = ? AND bucket = ? AND message_id = ?",
+            state, uid, threadId, bucket, messageId));
+  }
 }

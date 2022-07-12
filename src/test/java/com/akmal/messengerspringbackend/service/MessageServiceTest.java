@@ -19,6 +19,8 @@ import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -207,7 +209,7 @@ class MessageServiceTest {
   private ScrollContent<MessageDTO> mapScrollContentToDTO(
       ScrollContent<MessageByUserByThread> scrollContent) {
     return ScrollContent.of(
-        scrollContent.stream().map(MessageByUserByThread::toDTO).toList(),
+        scrollContent.stream().map(m -> m.toDTO(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC))).toList(),
         scrollContent.pagingState());
   }
 }

@@ -1,9 +1,8 @@
 package com.akmal.messengerspringbackend.service;
 
+import com.akmal.messengerspringbackend.dto.v1.MessageAcknowledgement;
 import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import com.akmal.messengerspringbackend.dto.v1.MessageSendRequestDTO;
-import com.akmal.messengerspringbackend.dto.v1.MessageSentResponseDTO;
-import com.akmal.messengerspringbackend.dto.v1.MessageStatus;
 import com.akmal.messengerspringbackend.dto.v1.ScrollContent;
 import com.akmal.messengerspringbackend.exception.EntityNotFoundException;
 import com.akmal.messengerspringbackend.model.MessageByUserByThread;
@@ -14,12 +13,14 @@ import com.akmal.messengerspringbackend.model.User;
 import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import com.akmal.messengerspringbackend.repository.MessageRepository;
 import com.akmal.messengerspringbackend.repository.ThreadRepository;
-import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.service.MessageDeliveryService.FanoutMessageMetadata;
 import com.akmal.messengerspringbackend.shared.BucketingManager;
+import com.akmal.messengerspringbackend.shared.util.ImmutableLists;
 import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,7 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Akmal Alikhujaev
@@ -47,11 +54,15 @@ import org.springframework.stereotype.Service;
 public class MessageService {
   private static final int FETCH_SIZE = 25;
   private final MessageRepository messageRepository;
-  private final UserRepository userRepository;
+  private final SimpMessagingTemplate wsMessagingTemplate;
   private final ThreadRepository threadRepository;
   private final SnowflakeGenerator snowflakeGenerator;
   private final BucketingManager bucketingManager;
   private final MessageDeliveryService messageDeliveryService;
+
+  @Qualifier("asyncExecutor")
+  @Autowired
+  private TaskExecutor asyncTaskExecutor;
 
   private final UserService userService;
 
@@ -84,12 +95,13 @@ public class MessageService {
    * to start execution such as: size has been satisfied or the next bucket (currentBucket - 1) is
    * out of positive range (< 0) which simply indicates that there is no data.
    *
-   * @param uid
-   * @param threadId
-   * @param bucket
-   * @param beforeMessageId
-   * @param pagingState
-   * @return
+   * @param uid user id for whom we are retrieving messages
+   * @param threadId id of a thread for which we are retrieving messages
+   * @param bucket time bucket of the message
+   * @param beforeMessageId optional parameter to find all messages published before certain message
+   * @param pagingState optional parameter to continue fetching the next set of records (reverse virtual scrolling)
+   * @return a page of messages sorted from the newest to the oldest restricted by the FETCH_SIZE property
+   * in {@link MessageRepository}
    */
   @Contract(
       pure = true,
@@ -206,6 +218,41 @@ public class MessageService {
     return ScrollContent.of(aggregatedMessages, lastPagingState);
   }
 
+  public ScrollContent<MessageDTO> findAllByUserAndThreadAndBucketMarkAsRead(
+      @NotNull String uid,
+      @NotNull UUID threadId,
+      @Nullable Integer bucket,
+      @Nullable Long beforeMessageId,
+      @Nullable String pagingState) {
+    var scrollContent =
+        this.findAllByUserAndThreadAndBucket(uid, threadId, bucket, beforeMessageId, pagingState);
+
+    if (!StringUtils.hasText(pagingState) && !scrollContent.content().isEmpty()) {
+      // means we are loading the first page of the results and hence need to check
+      // and mark last read message
+
+      // we have to acknowledge the latest seen message, which itself acknowledges all the previous
+      // ones.
+      final var messageToMark = scrollContent.content().get(0); // it is sorted, latest first
+
+      if (!messageToMark.read()) {
+        scrollContent = scrollContent.withContent(
+            ImmutableLists.appendAtIndex(scrollContent.content(), 0, messageToMark.withRead(true)));
+        this.asyncTaskExecutor.execute(
+            () ->
+                markMessageAsRead(
+                    uid, threadId, messageToMark.bucket(), messageToMark.messageId()));
+      }
+    }
+
+    return scrollContent;
+  }
+  @Async
+  public void markMessageAsRead(String uid, UUID threadId, int bucket, long messageId) {
+    this.threadRepository.updateIsReadThreadByUserByMessage(threadId, uid, true);
+    this.messageRepository.updateIsRead(uid, threadId, bucket, messageId, true);
+  }
+
   /**
    * The method composes {@link MessageByUserByThread} and {@link ThreadByUserByLastMessage} objects
    * and inserts them into cassandra database. MessageByUserByThread has to be inserted for each
@@ -218,9 +265,9 @@ public class MessageService {
    * @param threadId - conversation id.
    * @param authorId - user who sent the message.
    * @param messageSendRequest - DTO object that contains threadId and body.
-   * @return {@link MessageSentResponseDTO} that contains body and status of the message.
+   * @return {@link MessageDTO} that contains body and status of the message.
    */
-  public MessageSentResponseDTO sendMessage(
+  public MessageDTO sendMessage(
       UUID threadId, String authorId, MessageSendRequestDTO messageSendRequest) {
     final var thread =
         this.threadRepository
@@ -245,6 +292,7 @@ public class MessageService {
           MessageByUserByThread.builder()
               .authorId(author.getUid())
               .body(messageSendRequest.body())
+              .read(authorId.equals(participant.getUid()))
               .key(new Key(participant.getUid(), thread.getThreadId(), bucket, messageId))
               .build());
 
@@ -255,6 +303,11 @@ public class MessageService {
               .threadName(threadNameAndThumbnail[0])
               .threadPictureThumbnailUrl(threadNameAndThumbnail[1])
               .message(messageSendRequest.body())
+              .read(
+                  authorId.equals(
+                      participant
+                          .getUid())) // if we are persisting for the author of the message, it
+                                      // means the message has been read
               .key(new ThreadByUserByLastMessage.Key(participant.getUid(), thread.getThreadId()))
               .time(LocalDateTime.now())
               .build());
@@ -278,14 +331,28 @@ public class MessageService {
     this.messageRepository.saveMessageForAllThreadMembers(messages, threads);
     this.messageDeliveryService.fanoutMessages(fanoutMetadata); // async execution
 
-    return new MessageSentResponseDTO(
-        MessageStatus.SENT, messageId, thread.getThreadId(), messageSendRequest.body());
+    return new MessageDTO(
+        messageId, threadId.toString(), bucket, authorId, messageSendRequest.body(),
+        LocalDateTime.now(), true, false, false);
+  }
+
+  public void acknowledgeMessage(String receiptId, String userId, MessageDTO messageDTO) {
+    final var destination = String.format("/queue/threads/%s/acks", messageDTO.threadId());
+
+    this.wsMessagingTemplate.convertAndSendToUser(
+        userId, destination, new MessageAcknowledgement(messageDTO, receiptId, true)
+    );
   }
 
   private ScrollContent<MessageDTO> mapScrollContentToDTO(
       ScrollContent<MessageByUserByThread> scrollContent) {
+
     return ScrollContent.of(
-        scrollContent.stream().map(MessageByUserByThread::toDTO).toList(),
+        scrollContent.stream().map(m -> {
+          Instant instant = this.snowflakeGenerator.toInstant(m.getKey().getMessageId());
+
+          return m.toDTO(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+        }).toList(),
         scrollContent.pagingState());
   }
 }

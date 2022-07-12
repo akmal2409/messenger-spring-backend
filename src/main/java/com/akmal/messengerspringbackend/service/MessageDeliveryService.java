@@ -2,11 +2,19 @@ package com.akmal.messengerspringbackend.service;
 
 import com.akmal.messengerspringbackend.config.kafka.KafkaConfigurationProperties;
 import com.akmal.messengerspringbackend.config.websocket.WebSocketConfiguration;
+import com.akmal.messengerspringbackend.repository.MessageRepository;
+import com.akmal.messengerspringbackend.repository.ThreadRepository;
 import com.akmal.messengerspringbackend.shared.datastructure.Tuple;
+import com.akmal.messengerspringbackend.snowflake.SnowflakeGenerator;
 import com.akmal.messengerspringbackend.thread.ThreadEventKey;
 import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import com.akmal.messengerspringbackend.websocket.dto.MessageEventDto;
+import com.akmal.messengerspringbackend.websocket.storage.TopicSubscription;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.UUID;
 import lombok.Builder;
@@ -15,6 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -36,7 +47,13 @@ public class MessageDeliveryService {
 
   private final WebsocketSessionStorage sessionStorage;
   private final SimpMessagingTemplate wsMessagingTemplate;
+  private final SnowflakeGenerator snowflakeGenerator;
 
+  private final MessageRepository messageRepository;
+  private final ThreadRepository threadRepository;
+  @Qualifier("asyncExecutor")
+  @Autowired
+  private TaskExecutor taskExecutor;
   /**
    * Delivers the message to the active user when invoked. In case, the user is not online, i.e.
    * his/her websocket session is not registered in the registry, then the message is dropped. (In
@@ -57,15 +74,45 @@ public class MessageDeliveryService {
           WebSocketConfiguration.THREAD_TOPIC.concat(
               String.format("/%s", messageEvent.getThreadId()));
       String destination = null;
+      boolean deliveredDirectly = false;
 
       if (this.sessionStorage.isUserSubscribedTo(userId, threadTopicName)) {
-        destination = threadTopicName.replace("/user", "");
+        final Instant messageTimestamp =
+            this.snowflakeGenerator.toInstant(messageEvent.getMessageId());
+        final Instant connectionTime =
+            this.sessionStorage
+                .getSubscription(userId, threadTopicName)
+                .map(TopicSubscription::joinedAt)
+                .orElse(Instant.now().plus(Duration.ofDays(1)));
+
+        if (connectionTime.isAfter(messageTimestamp)) {
+          return; // do not deliver messages if the user subscribed to the thread after the message
+                  // was received by the server
+        }
+
+        destination = threadTopicName.replace("/user", ""); // stripping /user because Spring appends that automatically
+
+        this.taskExecutor.execute(() -> {
+          this.messageRepository.updateIsRead(
+              userId,
+              UUID.fromString(messageEvent.getThreadId().toString()),
+              messageEvent.getBucket(),
+              messageEvent.getMessageId(),
+              true);
+          this.threadRepository.updateIsReadThreadByUserByMessage(UUID.fromString(messageEvent.getThreadId().toString()),
+              userId, true);
+        });
+        deliveredDirectly = true;
       } else {
         destination = WebSocketConfiguration.NOTIFICATION_TOPIC.replace("/user", "");
       }
 
+      final Instant timestampInstant = this.snowflakeGenerator.toInstant(messageEvent.getMessageId());
+      final LocalDateTime timestamp = LocalDateTime.ofInstant(timestampInstant, ZoneId.systemDefault());
+
       this.wsMessagingTemplate.convertAndSendToUser(
-          userId, destination, MessageEventDto.fromThreadMessageEvent(messageEvent));
+          userId, destination, MessageEventDto.fromThreadMessageEvent(messageEvent, timestamp)
+                                   .withRead(deliveredDirectly));
     }
   }
 

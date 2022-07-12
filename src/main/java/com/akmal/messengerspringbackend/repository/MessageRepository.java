@@ -54,4 +54,8 @@ public interface MessageRepository {
   WriteResult saveMessageForAllThreadMembers(
       @NotNull Collection<MessageByUserByThread> messages,
       @NotNull Collection<ThreadByUserByLastMessage> latestThreads);
+
+
+  void updateIsRead(@NotNull String uid, @NotNull UUID threadId, int bucket,
+      long messageId, boolean state);
 }
