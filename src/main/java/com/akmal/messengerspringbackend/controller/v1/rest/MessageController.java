@@ -29,14 +29,6 @@ public class MessageController {
   public static final String BASE_API = "/api/v1/users/{userId}/threads/{threadId}/messages";
   private final MessageService messageService;
 
-  @PostMapping
-  public MessageSentResponseDTO sendMessage(
-      @PathVariable String userId,
-      @PathVariable UUID threadId,
-      @RequestBody MessageSendRequestDTO messageRequest) {
-    return this.messageService.sendMessage(threadId, userId, messageRequest);
-  }
-
   @GetMapping
   public ScrollContent<MessageDTO> getMessagesByUserByThreadByBucket(
       @PathVariable String userId,
@@ -44,7 +36,7 @@ public class MessageController {
       @RequestParam(required = false) Integer bucket,
       @RequestParam(required = false) String pagingState,
       @RequestParam(required = false) Long beforeMessageId) {
-    return this.messageService.findAllByUserAndThreadAndBucket(
+    return this.messageService.findAllByUserAndThreadAndBucketMarkAsRead(
         userId, threadId, bucket, beforeMessageId, pagingState);
   }
 }

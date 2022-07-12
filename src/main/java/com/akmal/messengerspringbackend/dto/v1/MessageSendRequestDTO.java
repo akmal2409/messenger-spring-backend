@@ -15,7 +15,8 @@ import lombok.With;
 @With
 public record MessageSendRequestDTO(
     String body,
-    @NotNull(message = "Thread ID is missing") UUID threadId
+    @NotNull(message = "Thread ID is missing") UUID threadId,
+    String receiptId
 ) {
 
 }

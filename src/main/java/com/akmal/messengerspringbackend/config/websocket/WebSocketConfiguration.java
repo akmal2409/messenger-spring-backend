@@ -5,11 +5,14 @@ import com.akmal.messengerspringbackend.websocket.IpHandshakeInterceptor;
 import com.akmal.messengerspringbackend.websocket.SessionManagementInterceptor;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -25,13 +28,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  */
 @Configuration
 @EnableWebSocketMessageBroker
-@Order(Ordered.HIGHEST_PRECEDENCE + 99)
+@Order(Ordered.HIGHEST_PRECEDENCE + 1)
 @RequiredArgsConstructor
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
   public static final String NOTIFICATION_TOPIC = "/user/queue/notifications";
+  public static final String THREAD_MESSAGE_ACK_TOPIC = "/user/queue/threads/{threadId}/acks";
   public static final String ERROR_TOPIC = "/user/queue/errors";
   public static final String THREAD_TOPIC =
-      "/user/queue/threads"; // + threadId TODO: secure threads by checking subscriber
+      "/user/queue/threads";
   private static final String BEARER_PREFIX = "Bearer ";
   private final JwtDecoder jwtDecoder;
   private final JwtAuthenticationConverter authenticationConverter;
@@ -39,10 +43,11 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker("/topic", "/queue");
+    registry.enableSimpleBroker("/topic", "/queue")
+        .setTaskScheduler(heartBeatScheduler());
     registry.setUserDestinationPrefix("/user");
 
-    registry.setApplicationDestinationPrefixes("/api");
+    registry.setApplicationDestinationPrefixes("/ws-api");
   }
 
   @Override
@@ -50,8 +55,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     registry
         .addEndpoint("/ws")
         .setAllowedOriginPatterns("*")
-        .addInterceptors(new IpHandshakeInterceptor())
-        .withSockJS();
+        .addInterceptors(new IpHandshakeInterceptor());
   }
 
   @Override
@@ -62,5 +66,10 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     final var sessionInterceptor = SessionManagementInterceptor.withStore(this.sessionStorage);
 
     registration.interceptors(bearerInterceptor, sessionInterceptor);
+  }
+
+  @Bean
+  public TaskScheduler heartBeatScheduler() {
+    return new ThreadPoolTaskScheduler();
   }
 }
