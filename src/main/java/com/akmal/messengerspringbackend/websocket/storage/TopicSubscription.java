@@ -1,6 +1,6 @@
 package com.akmal.messengerspringbackend.websocket.storage;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Builder;
 
 /**
@@ -13,7 +13,7 @@ import lombok.Builder;
 @Builder
 public record TopicSubscription(
   String topic,
-  LocalDateTime joinedAt,
+  Instant joinedAt,
   String id
 ) {
 
