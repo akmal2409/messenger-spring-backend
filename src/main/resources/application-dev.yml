@@ -47,6 +47,23 @@ project:
       orgUrl: 'https://dev-20836463.okta.com'
       apiKey: ${OKTA_API_KEY}
 
+  cors:
+    enabled: true
+    allowed-headers:
+      - 'Authorization'
+      - 'Content-Type'
+      - 'Accept'
+      - 'Origin'
+    allowed-methods:
+      - 'GET'
+      - 'POST'
+      - 'PUT'
+      - 'DELETE'
+      - 'OPTIONS'
+      - 'PATCH'
+    allowed-origins:
+      - "http://localhost:4200"
+
 
 logging:
   level:
