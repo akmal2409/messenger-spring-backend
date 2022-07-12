@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -79,7 +80,9 @@ public class ThreadService {
   }
 
   public ThreadDTO findById(@NotNull UUID threadId) {
-    return this.threadRepository.findByThreadId(threadId).map(ThreadDTO::from).orElse(null);
+    return this.threadRepository.findByThreadId(threadId)
+               .map(ThreadDTO::from)
+               .orElse(null);
   }
 
   /**
@@ -112,10 +115,10 @@ public class ThreadService {
       @NotNull String userId, @NotNull ThreadCreationRequest threadCreationRequest) {
     if (threadCreationRequest.inviteeIds().isEmpty()) {
       throw new IllegalThreadCreationRequest("At least one invitee must be provided.");
-    } else if (threadCreationRequest.groupThread()
-        && threadCreationRequest.inviteeIds().size() > 1) {
+    } else if (! threadCreationRequest.groupThread()
+        && threadCreationRequest.inviteeIds().size() != 1) {
       throw new IllegalThreadCreationRequest(
-          "More than 1 invitees were provided while the thread "
+          "More/Less than 1 invitees were provided while the thread "
               + "was specified to be a one on one thread.");
     }
 
@@ -137,6 +140,8 @@ public class ThreadService {
             "For a group thread you must supply the thread name.");
       }
       threadName = threadCreationRequest.threadName();
+    } else {
+
     }
 
     final var members =
@@ -206,7 +211,6 @@ public class ThreadService {
 
     return new LatestThreadDTO(
         thread.getKey().getThreadId().toString(),
-        thread.getKey().getUid(),
         thread.getMessageId(),
         this.timeAgoConverter.convert(lastMessageTimestamp),
         thread.getThreadName(),

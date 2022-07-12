@@ -34,9 +34,9 @@ public class ThreadController {
   private final ThreadService threadService;
 
   @GetMapping
-  public ResponseEntity<Collection<LatestThreadDTO>> findAllLatestByUser(
+  public Collection<LatestThreadDTO> findAllLatestByUser(
       @PathVariable String userId) {
-    return Responses.wrap(this.threadService.findAllLatestByUser(userId));
+    return this.threadService.findAllLatestByUser(userId);
   }
 
   @GetMapping("/{threadId}")

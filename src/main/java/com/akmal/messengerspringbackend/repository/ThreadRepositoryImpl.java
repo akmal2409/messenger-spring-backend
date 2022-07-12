@@ -98,4 +98,18 @@ public class ThreadRepositoryImpl implements ThreadRepository {
         .map(EntityWriteResult::getEntity)
         .toList();
   }
+
+  @Override
+  public void updateIsReadThreadByUserByMessage(
+      @NotNull UUID threadId, @NotNull String uid, boolean state) {
+    this.cassandraOperations
+        .getCqlOperations()
+        .execute(
+            SimpleStatement.newInstance(
+                "UPDATE threads_by_user_by_last_message SET "
+                    + "is_read=? WHERE uid = ? AND thread_id = ?",
+                state,
+                uid,
+                threadId));
+  }
 }
