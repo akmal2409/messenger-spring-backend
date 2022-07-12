@@ -2,6 +2,7 @@ package com.akmal.messengerspringbackend.model;
 
 import com.akmal.messengerspringbackend.dto.v1.MessageDTO;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
@@ -39,13 +40,14 @@ public class MessageByUserByThread {
   @Column("is_system_message")
   private final boolean systemMessage;
 
-  public MessageDTO toDTO() {
+  public MessageDTO toDTO(LocalDateTime timestamp) {
     return new MessageDTO(
         this.key.messageId,
         this.key.threadId.toString(),
         this.key.bucket,
         this.authorId,
         this.body,
+        timestamp,
         this.read,
         this.edited,
         this.isSystemMessage());
