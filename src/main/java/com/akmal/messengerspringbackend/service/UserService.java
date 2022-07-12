@@ -1,5 +1,6 @@
 package com.akmal.messengerspringbackend.service;
 
+import com.akmal.messengerspringbackend.dto.v1.UserDTO;
 import com.akmal.messengerspringbackend.model.User;
 import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.service.idp.IdpUserService;
