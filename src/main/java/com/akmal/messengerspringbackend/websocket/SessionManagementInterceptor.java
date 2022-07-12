@@ -5,7 +5,7 @@ import com.akmal.messengerspringbackend.websocket.storage.WebsocketSession;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +67,7 @@ public class SessionManagementInterceptor implements ChannelInterceptor {
 
     final var sub = TopicSubscription.builder()
                         .id(subscriptionId)
-                        .joinedAt(LocalDateTime.now())
+                        .joinedAt(Instant.now())
                         .topic(topicName)
                         .build();
 
@@ -90,7 +90,7 @@ public class SessionManagementInterceptor implements ChannelInterceptor {
 
     final var session =
         WebsocketSession.builder()
-            .joinedAt(LocalDateTime.now())
+            .joinedAt(Instant.now())
             .remoteAddress(remoteAddress)
             .subscriptions(new HashSet<>())
             .id(sessionId)

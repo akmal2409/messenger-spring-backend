@@ -1,5 +1,7 @@
 package com.akmal.messengerspringbackend.websocket.storage;
 
+import java.util.Optional;
+
 /**
  * @author Akmal Alikhujaev
  * @version 1.0
@@ -10,6 +12,10 @@ package com.akmal.messengerspringbackend.websocket.storage;
 public interface WebsocketSessionStorage {
 
   void add(WebsocketSession websocketSession);
+
+  Optional<WebsocketSession> get(String uid);
+
+  Optional<TopicSubscription> getSubscription(String uid, String topic);
 
   boolean addSubscription(String uid, TopicSubscription sub);
 

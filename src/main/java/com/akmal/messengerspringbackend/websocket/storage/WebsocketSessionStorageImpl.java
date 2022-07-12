@@ -2,8 +2,10 @@ package com.akmal.messengerspringbackend.websocket.storage;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,6 +24,20 @@ public class WebsocketSessionStorageImpl implements WebsocketSessionStorage {
   public void add(WebsocketSession websocketSession) {
     log.info("Adding websocket session {}", websocketSession);
     this.sessions.put(websocketSession.uid(), websocketSession);
+  }
+
+  @Override
+  public Optional<WebsocketSession> get(@NotNull String uid) {
+    return Optional.ofNullable(this.sessions.get(uid));
+  }
+
+  @Override
+  public Optional<TopicSubscription> getSubscription(String uid, String topic) {
+    if (!this.sessions.containsKey(uid)) return Optional.empty();
+
+    return this.sessions.get(uid).subscriptions().stream()
+               .filter(sub -> sub.topic().equals(topic))
+               .findFirst();
   }
 
   @Override

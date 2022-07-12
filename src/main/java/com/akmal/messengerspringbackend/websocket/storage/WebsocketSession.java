@@ -1,6 +1,7 @@
 package com.akmal.messengerspringbackend.websocket.storage;
 
 import java.net.InetAddress;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import lombok.Builder;
 public record WebsocketSession(
     InetAddress remoteAddress,
     String uid,
-    LocalDateTime joinedAt,
+    Instant joinedAt,
     Set<TopicSubscription> subscriptions,
     String id
 ) {
