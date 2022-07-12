@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import lombok.With;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +17,7 @@ import org.springframework.data.util.Streamable;
  * @project messenger-spring-backend
  * @since 1.0
  */
+@With
 public record ScrollContent<T> (
     String pagingState, // stores the offset from where to start to read
     List<T> content
