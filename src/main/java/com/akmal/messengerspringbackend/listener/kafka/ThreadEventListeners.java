@@ -1,9 +1,11 @@
 package com.akmal.messengerspringbackend.listener.kafka;
 
 import com.akmal.messengerspringbackend.service.MessageDeliveryService;
+import com.akmal.messengerspringbackend.service.UserPresenceService;
 import com.akmal.messengerspringbackend.thread.ThreadEventKey;
 import com.akmal.messengerspringbackend.thread.ThreadMessageEvent;
 import com.akmal.messengerspringbackend.thread.ThreadPresenceEvent;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ThreadEventListeners {
   private final MessageDeliveryService messageDeliveryService;
+  private final UserPresenceService presenceService;
 
   @KafkaHandler
   public void listenToEvents(@Payload final SpecificRecord threadEvent,
@@ -43,11 +46,10 @@ public class ThreadEventListeners {
       }
   }
 
-  private void handleMessageEvent(ThreadEventKey key, ThreadMessageEvent messageEvent) {
-    //TODO: implement message delivery
-  }
-
   private void handlePresenceEvent(ThreadEventKey key, ThreadPresenceEvent presenceEvent) {
-    //TODO: update user activity in the DB, notify the other participant if online; else send notification
+    switch (presenceEvent.getType()) {
+      case TYPING: this.presenceService.notifyUserOfTypingEvent(key.getUid().toString(),
+          presenceEvent.getUid().toString(), UUID.fromString(key.getThreadId().toString()));
+    }
   }
 }
