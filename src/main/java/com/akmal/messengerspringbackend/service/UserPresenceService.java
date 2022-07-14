@@ -8,6 +8,7 @@ import com.akmal.messengerspringbackend.repository.ThreadRepository;
 import com.akmal.messengerspringbackend.thread.PresenceEventType;
 import com.akmal.messengerspringbackend.thread.ThreadEventKey;
 import com.akmal.messengerspringbackend.thread.ThreadPresenceEvent;
+import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import java.util.LinkedList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserPresenceService {
   private final KafkaConfigurationProperties kafkaProps;
   private final ThreadRepository threadRepository;
   private final SimpMessagingTemplate wsMessagingTemplate;
+  private final WebsocketSessionStorage websocketSessionStorage;
 
   /**
    * Fans out the typing presence event to all members of the thread excluding the current user.
@@ -70,7 +72,10 @@ public class UserPresenceService {
    */
   public void notifyUserOfTypingEvent(@NotNull String userId,
       @NotNull String authorId, @NotNull UUID threadId) {
-    this.wsMessagingTemplate.convertAndSendToUser(userId,
-        "/queue/typing", new TypingEvent(authorId, threadId.toString()));
+
+    if (this.websocketSessionStorage.isUserConnected(userId)) {
+      this.wsMessagingTemplate.convertAndSendToUser(userId,
+          "/queue/typing", new TypingEvent(authorId, threadId.toString()));
+    }
   }
 }
