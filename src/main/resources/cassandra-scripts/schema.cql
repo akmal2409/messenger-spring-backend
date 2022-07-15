@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users
     email TEXT,
     first_name TEXT,
     last_name TEXT,
+    last_seen_at timestamp,
     profile_image_url TEXT,
     profile_thumbnail_url TEXT,
     contacts SET<frozen<user>>,
@@ -60,7 +61,9 @@ CREATE TABLE IF NOT EXISTS threads_by_user_by_last_message
     thread_picture_thumbnail_url TEXT,
     message TEXT,
     author frozen<user>,
+    member_ids set<text>,
     is_read BOOLEAN,
+    is_group_thread boolean,
     is_system_message boolean,
     PRIMARY KEY ((uid), thread_id)
 );
