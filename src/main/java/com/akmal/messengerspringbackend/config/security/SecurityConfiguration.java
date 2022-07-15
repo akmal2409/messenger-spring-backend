@@ -43,6 +43,7 @@ public class SecurityConfiguration {
             authorize ->
                 authorize
                     .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .antMatchers("/api/v1/users/presence").authenticated()
                     .antMatchers("/api/v1/users/{userId}/**")
                     .access("authentication.name == #userId")
                     .antMatchers(ThreadController.BASE_URL.concat("/{threadId}/**"))

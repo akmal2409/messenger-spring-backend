@@ -2,10 +2,14 @@ package com.akmal.messengerspringbackend.controller.v1.rest;
 
 import com.akmal.messengerspringbackend.dto.v1.UserDTO;
 import com.akmal.messengerspringbackend.service.UserService;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -25,5 +29,10 @@ public class UserController {
   @GetMapping("/{userId}")
   public UserDTO findById(@PathVariable String userId) {
     return UserDTO.from(this.userService.findUserByUid(userId));
+  }
+
+  @GetMapping("/presence")
+  public Map<String, Instant> getUserPresence(@RequestParam Set<String> userIds) {
+    return this.userService.findPresenceByUserIds(userIds);
   }
 }
