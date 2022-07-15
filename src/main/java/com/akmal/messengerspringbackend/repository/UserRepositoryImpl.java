@@ -5,6 +5,7 @@ import com.akmal.messengerspringbackend.exception.persistence.DataReadTimeoutExc
 import com.akmal.messengerspringbackend.model.User;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.cassandra.core.AsyncCassandraOperations;
 import org.springframework.data.cassandra.core.CassandraOperations;
+import org.springframework.data.cassandra.core.EntityWriteResult;
 import org.springframework.data.cassandra.core.InsertOptions;
+import org.springframework.data.cassandra.core.UpdateOptions;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -85,5 +88,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     return userFutures.stream().map(future -> future.completable().join()).toList();
+  }
+
+  @Override
+  public void updateLastSeenAtByUserId(String userId, Instant lastSeenAt) {
+    this.cassandraOperations.getCqlOperations().execute(
+        SimpleStatement.newInstance("UPDATE users SET last_seen_at = ? WHERE uid = ?",
+            lastSeenAt.toEpochMilli(), userId)
+    );
   }
 }

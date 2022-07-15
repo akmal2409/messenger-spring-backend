@@ -1,6 +1,7 @@
 package com.akmal.messengerspringbackend.repository;
 
 import com.akmal.messengerspringbackend.model.User;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,6 @@ public interface UserRepository {
   Optional<User> findByUid(String uid);
 
   User save(User user);
+
+  void updateLastSeenAtByUserId(String userId, Instant lastSeenAt);
 }
