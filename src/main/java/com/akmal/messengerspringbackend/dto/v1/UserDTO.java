@@ -1,6 +1,9 @@
 package com.akmal.messengerspringbackend.dto.v1;
 
 import com.akmal.messengerspringbackend.model.User;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 
 /**
  * @author Akmal Alikhujaev
@@ -15,17 +18,22 @@ public record UserDTO(
     String lastName,
     String email,
     String profileThumbnailUrl,
-    String profileImageUrl
+    String profileImageUrl,
+    LocalDateTime lastSeenAt
 ) {
 
   public static UserDTO from(User user) {
+    final var lastSeenAt = Optional.ofNullable(user.getLastSeenAt())
+                               .map(time -> LocalDateTime.ofInstant(time, ZoneOffset.UTC))
+                               .orElse(null);
     return new UserDTO(
         user.getUid(),
         user.getFirstName(),
         user.getLastName(),
         user.getEmail(),
         user.getProfileThumbnailUrl(),
-        user.getProfileImageUrl()
+        user.getProfileImageUrl(),
+        lastSeenAt
     );
   }
 }
