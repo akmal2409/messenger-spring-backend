@@ -17,7 +17,7 @@ import org.springframework.stereotype.Controller;
  */
 @Controller
 @RequiredArgsConstructor
-public class WsPresenceController {
+public class WsThreadPresenceController {
 
   public static final String BASE_TOPIC_PREFIX = "/users/{userId}/threads/{threadId}";
   private final UserPresenceService userPresenceService;
