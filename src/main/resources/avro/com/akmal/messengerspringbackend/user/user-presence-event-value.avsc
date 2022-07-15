@@ -1,0 +1,18 @@
+{
+  "namespace": "com.akmal.messengerspringbackend.user",
+  "name": "UserPresenceEvent",
+  "doc": "Contains the timestamp of the last heartbeat",
+  "type": "record",
+  "fields": [
+    {
+      "name": "lastSeenAt",
+      "type": "long",
+      "doc": "Time of the last heartbeat in milliseconds since epoch relative to UTC time"
+    },
+    {
+      "name": "userId",
+      "type": "string",
+      "doc": "User who generated presence event"
+    }
+  ]
+}
