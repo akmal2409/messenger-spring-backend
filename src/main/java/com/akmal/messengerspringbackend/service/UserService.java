@@ -1,10 +1,14 @@
 package com.akmal.messengerspringbackend.service;
 
-import com.akmal.messengerspringbackend.dto.v1.UserDTO;
 import com.akmal.messengerspringbackend.model.User;
 import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.service.idp.IdpUserService;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -39,5 +43,15 @@ public class UserService {
     this.userRepository.save(user);
 
     return user;
+  }
+
+  public Map<String, Instant> findPresenceByUserIds(@NotNull Set<String> userIds) {
+    final var users = this.userRepository.findAllByIds(userIds);
+    final var presenceMap = new HashMap<String, Instant>();
+
+    for (User user: users) {
+      presenceMap.put(user.getUid(), user.getLastSeenAt());
+    }
+    return presenceMap;
   }
 }
