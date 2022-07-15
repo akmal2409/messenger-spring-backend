@@ -1,5 +1,7 @@
 package com.akmal.messengerspringbackend.dto.v1;
 
+import java.util.Set;
+
 /**
  * @author Akmal Alikhujaev
  * @version 1.0
@@ -15,8 +17,10 @@ public record LatestThreadDTO(
     String threadPictureThumbnailUrl,
     String lastMessage,
     UserDetailsDTO author,
+    Set<String> memberIds,
     boolean read,
-    boolean systemMessage
+    boolean systemMessage,
+    boolean groupThread
 ) {
 
 }

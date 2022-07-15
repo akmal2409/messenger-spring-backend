@@ -3,6 +3,7 @@ package com.akmal.messengerspringbackend.model;
 import com.akmal.messengerspringbackend.exception.CorruptedThreadException;
 import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
@@ -44,6 +45,10 @@ public class ThreadByUserByLastMessage {
   private final boolean read;
   @Column("is_system_message")
   private final boolean systemMessage;
+  @Column("is_group_thread")
+  private final boolean groupThread;
+  @Column("member_ids")
+  private final Set<String> memberIds;
 
   /**
    * The method decides which thread name and image to assign to the {@link

@@ -217,7 +217,9 @@ public class ThreadService {
         thread.getThreadPictureThumbnailUrl(),
         thread.getMessage(),
         Optional.ofNullable(thread.getAuthor()).map(UserDetailsDTO::from).orElse(null),
+        thread.getMemberIds(),
         thread.isRead(),
-        thread.isSystemMessage());
+        thread.isSystemMessage(),
+        thread.isGroupThread());
   }
 }
