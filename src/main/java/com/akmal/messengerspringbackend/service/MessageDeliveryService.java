@@ -20,6 +20,7 @@ import java.util.UUID;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class MessageDeliveryService {
-  private final KafkaTemplate<SpecificRecordBase, SpecificRecordBase> threadEventsTemplate;
+  private final KafkaTemplate<SpecificRecord, SpecificRecord> threadEventsTemplate;
   private final KafkaConfigurationProperties kafkaProps;
 
   private final WebsocketSessionStorage sessionStorage;
@@ -165,6 +166,8 @@ public class MessageDeliveryService {
   record FanoutMessageMetadata(
       @NotNull UUID threadId,
       @Nullable String threadName,
+      @Nullable String threadPictureUrl,
+      @Nullable String threadThumbnailUrl,
       @NotNull String recipientId,
       long messageId,
       @Nullable String authorId,

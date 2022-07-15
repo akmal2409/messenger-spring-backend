@@ -60,9 +60,7 @@ public class MessageService {
   private final BucketingManager bucketingManager;
   private final MessageDeliveryService messageDeliveryService;
 
-  @Qualifier("asyncExecutor")
-  @Autowired
-  private TaskExecutor asyncTaskExecutor;
+  @Qualifier("asyncExecutor") private TaskExecutor asyncTaskExecutor;
 
   private final UserService userService;
 
@@ -322,6 +320,8 @@ public class MessageService {
                 .bucket(bucket)
                 .messageId(messageId)
                 .threadId(threadId)
+                .threadName(threadNameAndThumbnail[0])
+                .threadThumbnailUrl(threadNameAndThumbnail[1])
                 .threadName(threadNameAndThumbnail[0])
                 .build());
       }

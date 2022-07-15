@@ -16,6 +16,8 @@ public record MessageEventDto(
     long messageId,
     String threadId,
     String threadName,
+    String threadPictureUrl,
+    String threadPictureThumbnailUrl,
     int bucket,
     String authorId,
     String authorName,
@@ -30,6 +32,8 @@ public record MessageEventDto(
     return new MessageEventDto(
         messageEvent.getMessageId(),
         messageEvent.getThreadId().toString(),
+        messageEvent.getThreadPictureUrl().toString(),
+        messageEvent.getThreadPictureThumbnailUrl().toString(),
         messageEvent.getThreadName().toString(),
         messageEvent.getBucket(),
         messageEvent.getAuthorId().toString(),
