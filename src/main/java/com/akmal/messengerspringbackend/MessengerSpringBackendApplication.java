@@ -7,16 +7,19 @@ import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoCo
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraRepositoriesAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.cassandra.core.CassandraOperations;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication(exclude = {
-    CassandraAutoConfiguration.class,
-    CassandraDataAutoConfiguration.class,
-    CassandraReactiveDataAutoConfiguration.class,
-    CassandraRepositoriesAutoConfiguration.class,
-    CassandraReactiveRepositoriesAutoConfiguration.class
-})
+@SpringBootApplication(
+    exclude = {
+      CassandraAutoConfiguration.class,
+      CassandraDataAutoConfiguration.class,
+      CassandraReactiveDataAutoConfiguration.class,
+      CassandraRepositoriesAutoConfiguration.class,
+      CassandraReactiveRepositoriesAutoConfiguration.class
+    })
+@EnableAsync
+@EnableKafka
 public class MessengerSpringBackendApplication {
 
   public static void main(String[] args) {
