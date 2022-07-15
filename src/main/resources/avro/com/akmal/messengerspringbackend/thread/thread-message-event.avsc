@@ -44,6 +44,18 @@
       "default": ""
     },
     {
+      "name": "threadPictureThumbnailUrl",
+      "type": "string",
+      "doc": "Thumbnail picture of the thread",
+      "default": ""
+    },
+    {
+      "name": "threadPictureUrl",
+      "type": "string",
+      "doc": "Thread picture",
+      "default": ""
+    },
+    {
       "name": "body",
       "type": "string",
       "doc": "Message body"
