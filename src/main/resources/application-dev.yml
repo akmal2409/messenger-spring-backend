@@ -24,6 +24,7 @@ project:
     key-serializer: 'io.confluent.kafka.serializers.KafkaAvroSerializer'
     topics:
       thread-events: "thread.events"
+      user-presence: "user.presence"
     group-id: "instance01"
   cassandra:
     keyspace:
@@ -65,13 +66,13 @@ project:
       - "http://localhost:4200"
 
 
-logging:
-  level:
-    com:
-      akmal:
-        messengerspringbackend: TRACE
-    org:
-      springframework:
-        security: DEBUG
-        web:
-          socket: TRACE
+#logging:
+#  level:
+#    com:
+#      akmal:
+#        messengerspringbackend: TRACE
+#    org:
+#      springframework:
+#        security: DEBUG
+#        web:
+#          socket: TRACE

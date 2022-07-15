@@ -109,6 +109,7 @@ public class KafkaConfigurationProperties {
   @Data
   public static class TopicNames {
     private String threadEvents;
+    private String userPresence;
   }
 
   @Data
