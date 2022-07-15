@@ -1,14 +1,17 @@
 package com.akmal.messengerspringbackend.config.websocket;
 
+import com.akmal.messengerspringbackend.service.UserPresenceService;
 import com.akmal.messengerspringbackend.websocket.BearerHandshakeInterceptor;
 import com.akmal.messengerspringbackend.websocket.IpHandshakeInterceptor;
 import com.akmal.messengerspringbackend.websocket.SessionManagementInterceptor;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.TaskScheduler;
@@ -40,6 +43,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
   private final JwtDecoder jwtDecoder;
   private final JwtAuthenticationConverter authenticationConverter;
   private final WebsocketSessionStorage sessionStorage;
+  private final UserPresenceService userPresenceService;
+  @Qualifier("asyncExecutor") private final AsyncTaskExecutor asyncTaskExecutor;
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -64,6 +69,12 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         BearerHandshakeInterceptor.customInstance(
             jwtDecoder, authenticationConverter, BEARER_PREFIX);
     final var sessionInterceptor = SessionManagementInterceptor.withStore(this.sessionStorage);
+
+    sessionInterceptor.registerPostConnectCallback(
+        session -> {
+          this.asyncTaskExecutor.submit(
+              () -> this.userPresenceService.sendUserPresenceEvent(session.uid()));
+        });
 
     registration.interceptors(bearerInterceptor, sessionInterceptor);
   }

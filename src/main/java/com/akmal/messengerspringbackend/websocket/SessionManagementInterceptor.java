@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.Message;
@@ -25,13 +27,25 @@ import org.springframework.messaging.support.ChannelInterceptor;
 public class SessionManagementInterceptor implements ChannelInterceptor {
 
   private final WebsocketSessionStorage sessionStorage;
+  private final ConcurrentLinkedQueue<Consumer<WebsocketSession>> postConnectCallbacks;
+  private final ConcurrentLinkedQueue<Consumer<WebsocketSession>> postDisconnectCallbacks;
 
   private SessionManagementInterceptor(WebsocketSessionStorage sessionStorage) {
     this.sessionStorage = sessionStorage;
+    this.postConnectCallbacks = new ConcurrentLinkedQueue<>();
+    this.postDisconnectCallbacks = new ConcurrentLinkedQueue<>();
   }
 
-  public static SessionManagementInterceptor withStore(WebsocketSessionStorage sessionStorage) {
+  public static SessionManagementInterceptor withStore(@NotNull WebsocketSessionStorage sessionStorage) {
     return new SessionManagementInterceptor(sessionStorage);
+  }
+
+  public void registerPostConnectCallback(@NotNull Consumer<WebsocketSession> callback) {
+    this.postConnectCallbacks.add(callback);
+  }
+
+  public void registerPostDisconnectCallback(@NotNull Consumer<WebsocketSession> callback) {
+    this.postDisconnectCallbacks.add(callback);
   }
 
   @Override
@@ -98,11 +112,20 @@ public class SessionManagementInterceptor implements ChannelInterceptor {
             .build();
 
     this.sessionStorage.add(session);
+
+    for (Consumer<WebsocketSession> callback: this.postConnectCallbacks) {
+      callback.accept(session);
+    }
   }
 
   private void handleDisconnect(StompHeaderAccessor headerAccessor) {
     final var principal = headerAccessor.getUser();
 
+    final var session = this.sessionStorage.get(principal.getName());
     this.sessionStorage.remove(principal.getName());
+
+    for (Consumer<WebsocketSession> callback: this.postDisconnectCallbacks) {
+      callback.accept(session.get());
+    }
   }
 }
