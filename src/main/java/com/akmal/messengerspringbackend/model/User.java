@@ -3,6 +3,7 @@ package com.akmal.messengerspringbackend.model;
 import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import com.akmal.messengerspringbackend.shared.idp.IdpUserMetadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +52,9 @@ public class User {
   @Column("profile_image_url")
   private final String profileImageUrl;
 
+  @Column("last_seen_at")
+  private final Instant lastSeenAt;
+
   public User(
       String uid,
       String firstName,
@@ -59,7 +63,8 @@ public class User {
       Set<UserUDT> contacts,
       Set<UUID> threadIds,
       String profileThumbnailUrl,
-      String profileImageUrl) {
+      String profileImageUrl,
+      Instant lastSeenAt) {
     this.uid = uid;
     this.firstName = firstName;
     this.lastName = lastName;
@@ -68,6 +73,7 @@ public class User {
     this.threadIds = Optional.ofNullable(threadIds).orElse(Collections.emptySet());
     this.profileThumbnailUrl = profileThumbnailUrl;
     this.profileImageUrl = profileImageUrl;
+    this.lastSeenAt = lastSeenAt;
   }
 
   public static User fromIdpMetadata(IdpUserMetadata idpUserMetadata) {
@@ -76,6 +82,7 @@ public class User {
         .firstName(idpUserMetadata.firstName())
         .lastName(idpUserMetadata.lastName())
         .email(idpUserMetadata.email())
+        .contacts(Collections.emptySet())
         .build();
   }
 
