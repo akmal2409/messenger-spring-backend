@@ -1,22 +1,22 @@
 package com.akmal.messengerspringbackend.service;
 
 import com.akmal.messengerspringbackend.config.kafka.KafkaConfigurationProperties;
-import com.akmal.messengerspringbackend.dto.v1.TypingEvent;
 import com.akmal.messengerspringbackend.exception.EntityNotFoundException;
 import com.akmal.messengerspringbackend.model.udt.UserUDT;
 import com.akmal.messengerspringbackend.repository.ThreadRepository;
+import com.akmal.messengerspringbackend.repository.UserRepository;
 import com.akmal.messengerspringbackend.thread.PresenceEventType;
 import com.akmal.messengerspringbackend.thread.ThreadEventKey;
 import com.akmal.messengerspringbackend.thread.ThreadPresenceEvent;
+import com.akmal.messengerspringbackend.user.UserPresenceEvent;
 import com.akmal.messengerspringbackend.websocket.storage.WebsocketSessionStorage;
-import java.util.LinkedList;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,11 +29,14 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserPresenceService {
-  private final KafkaTemplate<SpecificRecordBase, SpecificRecordBase> kafkaTemplate;
+  @Qualifier("kafkaTemplateAvroKeyAvroValue") private final KafkaTemplate<SpecificRecord, SpecificRecord> kafkaAvroKeyAvroValueTemplate;
+  @Qualifier("kafkaTemplateStringKeyAvroValue") private final KafkaTemplate<String, SpecificRecord> kafkaStringKeyAvroValueTemplate;
+
   private final KafkaConfigurationProperties kafkaProps;
   private final ThreadRepository threadRepository;
-  private final SimpMessagingTemplate wsMessagingTemplate;
   private final WebsocketSessionStorage websocketSessionStorage;
+  private final UserService userService;
+  private final UserRepository userRepository;
 
   /**
    * Fans out the typing presence event to all members of the thread excluding the current user.
@@ -58,24 +61,24 @@ public class UserPresenceService {
                                        .setThreadId(threadId.toString())
                                        .build();
 
-      this.kafkaTemplate.send(this.kafkaProps.getTopics().getThreadEvents(),
+      this.kafkaAvroKeyAvroValueTemplate.send(this.kafkaProps.getTopics().getThreadEvents(),
           presenceEventKey, presenceEvent);
     }
   }
 
-  /**
-   * Sends typing presence notification to the user.
-   *
-   * @param userId for whom the event was destined.
-   * @param authorId the person who triggered the event.
-   * @param threadId thread in which the event happened.
-   */
-  public void notifyUserOfTypingEvent(@NotNull String userId,
-      @NotNull String authorId, @NotNull UUID threadId) {
+  public void sendUserPresenceEvent(String userId) {
+    final var user = this.userService.findUserByUid(userId);
+    final Instant now = Instant.now();
 
-    if (this.websocketSessionStorage.isUserConnected(userId)) {
-      this.wsMessagingTemplate.convertAndSendToUser(userId,
-          "/queue/typing", new TypingEvent(authorId, threadId.toString()));
+    this.userRepository.updateLastSeenAtByUserId(user.getUid(), now);
+
+    final var presenceEvent = UserPresenceEvent.newBuilder()
+                                  .setUserId(userId)
+                                  .setLastSeenAt(now.toEpochMilli())
+                                  .build();
+
+    for (UserUDT contact: user.getContacts()) {
+      final var future = this.kafkaStringKeyAvroValueTemplate.send(this.kafkaProps.getTopics().getUserPresence(), contact.getUid(), presenceEvent);
     }
   }
 }
